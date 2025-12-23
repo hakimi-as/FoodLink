@@ -19,13 +19,21 @@ Food waste is a critical issue in university campus environments. Cafeterias oft
 Our motivation is to bridge this gap using mobile technology. By creating a real-time platform, we can reduce food wastage and simultaneously support student welfare.
 
 ### Relevance
-This project aligns with the **Social Welfare & NGO** and **Productivity/Utilities** domains. It serves a dual purpose: environmental responsibility (reducing waste) and social aid (feeding students), promoting a caring and sustainable campus community.
+This project aligns with the **Social Welfare & NGO** and **Productivity/Utilities** domains. We ground our project in global sustainability goals and the **Tawhidic Epistemology** framework:
+
+**1. UN Sustainable Development Goals (SDGs)**
+* **Goal 2 (Zero Hunger):** Directly addresses student hunger by redistributing surplus food to those in need.
+* **Goal 12 (Responsible Consumption):** Tackles food waste at the source, ensuring sustainable consumption patterns.
+
+**2. Alignment with IIUM’s Tawhidic Epistemology**
+* **Purpose-Driven Knowledge:** We recognize that technical knowledge is not value-neutral; it must serve higher purposes. MySaveFood utilizes mobile development skills to specifically target **societal welfare**, ensuring that our technical capabilities are directed toward aiding the community and promoting social justice.
+* **Ethical Responsibility:** We believe knowledge acquisition comes with an ethical duty to use it for good. This app allows us to fulfill our role as God's **vicegerents (stewards)** on Earth by actively reducing waste and managing resources responsibly to benefit others.
 
 ## d) Objectives
 1. To develop a platform that allows cafeteria owners to broadcast availability of surplus or near-expiry food instantly.
 2. To provide students with a real-time discovery tool to locate and claim free food on campus.
 3. To implement a fair reservation system that prevents overcrowding and ensures food goes to those who claim it first.
-4. To strictly observe **Shariah-compliant** values by ensuring all listed food is Halal and the platform promotes ethical sharing.
+4. To strictly observe Shariah-compliant values by ensuring all listed food is Halal and the platform promotes ethical sharing.
 
 ## e) Target Users
 ### 1. Donors (Cafe Owners/Staff)
@@ -46,10 +54,11 @@ This project aligns with the **Social Welfare & NGO** and **Productivity/Utiliti
 4.  **Claim System (Student):** A "Reserve" button that decrements the available quantity in real-time to prevent double-booking.
 5.  **Notifications:** Push notifications to alert students when new food is posted near them.
 6.  **Profile & History:** Users can view their past donations or claimed items.
+7.  **Reporting & Moderation:** A dedicated feature allowing users to report suspicious activity, fake listings, or non-Halal food items. This ensures the platform remains safe and trusted.
 
 ### Shariah Compliance
 * **Halal Verification:** All registered Donors must be Halal-certified vendors.
-* **Ethical Usage:** Report features to prevent abuse of the system.
+* **Ethical Usage:** The reporting system actively prevents abuse, ensuring the platform is used solely for genuine charitable purposes.
 
 ## g) Proposed UI Mock-up
 ![Login Screen Mockup](INSERT_IMAGE_LINK_HERE)
