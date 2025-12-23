@@ -4,9 +4,9 @@ Mobile Application Development Group Project
 ## a) Group Members
 | Name | Matric Number | Responsibility |
 | :--- | :--- | :--- |
-| **ABDULLAH HARIS BIN ABDUL RASHID** | 2212901 | [e.g., UI/UX Design, Frontend Logic] |
-| **MUHAMMAD MUIZZUDDIN BIN AMIN** | 2220323 | [e.g., Firebase Integration, Authentication] |
-| **MOHAMAD NUR HAKIMI BIN ASMADI** | 2213091 | [e.g., State Management, Architecture] |
+| **ABDULLAH HARIS BIN ABDUL RASHID** | 2212901 | UI/UX Design, Frontend Logic |
+| **MUHAMMAD MUIZZUDDIN BIN AMIN** | 2220323 | Firebase Integration, Authentication |
+| **MOHAMAD NUR HAKIMI BIN ASMADI** | 2213091 | State Management, Architecture |
 
 ## b) Project Title
 **MySaveFood**
