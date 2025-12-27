@@ -110,7 +110,9 @@ We will use **Cloud Firestore** (NoSQL) for the database.
 * `timestamp` (Timestamp)
 
 ## j) Flowchart / Sequence Diagram
-![Sequence Diagram](INSERT_IMAGE_LINK_HERE)
+
+<img width="9710" height="8425" alt="Sequence_diagram_MySaveFood" src="https://github.com/user-attachments/assets/b7561ba0-d690-42e6-bd51-9b34e33b4d56" />
+
 
 > *The diagram above illustrates the sequence of a Donor posting an item, the item appearing on the Student's feed, and the Student successfully claiming the item, which updates the database in real-time.*
 
