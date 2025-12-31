@@ -2,11 +2,11 @@
 Mobile Application Development Group Project
 
 ## a) Group Members
-| Name | Matric Number | Responsibility |
+| Name | Matric Number | Responsibilities |
 | :--- | :--- | :--- |
-| **ABDULLAH HARIS BIN ABDUL RASHID** | 2212901 | UI/UX Design, Frontend Logic |
-| **MUHAMMAD MUIZZUDDIN BIN AMIN** | 2220323 | Firebase Integration, Authentication |
-| **MOHAMAD NUR HAKIMI BIN ASMADI** | 2213091 | State Management, Architecture |
+| **ABDULLAH HARIS BIN ABDUL RASHID** | 2212901 | Proposal Draft, UI/UX Design, Frontend Logic |
+| **MUHAMMAD MUIZZUDDIN BIN AMIN** | 2220323 | Mockup, Firebase Integration, Authentication |
+| **MOHAMAD NUR HAKIMI BIN ASMADI** | 2213091 | Sequence Diagram, State Management, Architecture |
 
 ## b) Project Title
 **MySaveFood**
@@ -109,7 +109,7 @@ We will use **Cloud Firestore** (NoSQL) for the database.
 * `studentId` (Reference to users)
 * `timestamp` (Timestamp)
 
-## j) Flowchart / Sequence Diagram
+## j) Sequence Diagram
 
 <img width="9710" height="8425" alt="Sequence_diagram_MySaveFood" src="https://github.com/user-attachments/assets/b7561ba0-d690-42e6-bd51-9b34e33b4d56" />
 
