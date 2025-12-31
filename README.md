@@ -61,9 +61,10 @@ This project aligns with the **Social Welfare & NGO** and **Productivity/Utiliti
 * **Ethical Usage:** The reporting system actively prevents abuse, ensuring the platform is used solely for genuine charitable purposes.
 
 ## g) Proposed UI Mock-up
-![Login Screen Mockup](INSERT_IMAGE_LINK_HERE)
-![Home Screen Mockup](INSERT_IMAGE_LINK_HERE)
-![Post Item Mockup](INSERT_IMAGE_LINK_HERE)
+  <figcaption><strong>Figure 1:</strong> Login Page Mockup</figcaption><img src="proposal/Register.png" alt="Login_Page_MySaveFood" width="200">
+  <figcaption><strong>Figure 2:</strong> Food List Mockup</figcaption><img src="proposal/FoodPage.png" alt="Food_List_MySaveFood" width="200">
+  <figcaption><strong>Figure 3:</strong> Donate Food Mockup</figcaption><img src="proposal/DonatePage.png" alt="Donate_Food_MySaveFood" width="200">
+  <figcaption><strong>Figure 4:</strong> Profile Page Mockup</figcaption><img src="proposal/ProfilePage.png" alt="Profile_Page_MySaveFood" width="200">
 
 > *The sketches above demonstrate the user-friendly layout and consistent color scheme planned for the final app.*
 
