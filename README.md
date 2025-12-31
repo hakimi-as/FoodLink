@@ -9,7 +9,7 @@ Mobile Application Development Group Project
 | **MOHAMAD NUR HAKIMI BIN ASMADI** | 2213091 | Sequence Diagram, State Management, Architecture |
 
 ## b) Project Title
-**MySaveFood**
+**MySaveFood: Platform to Donate and Receive Leftovers For Free**
 
 ## c) Introduction
 ### Problem Statement
