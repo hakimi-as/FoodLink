@@ -112,8 +112,7 @@ We will use **Cloud Firestore** (NoSQL) for the database.
 
 ## j) Sequence Diagram
 
-<img width="9710" height="8425" alt="Sequence_diagram_MySaveFood" src="https://github.com/user-attachments/assets/b7561ba0-d690-42e6-bd51-9b34e33b4d56" />
-
+<figcaption><strong>Figure 5:</strong> General Sequence Diagram</figcaption><img src="proposal/seq_diagram.jpeg" alt="Sequence_diagram_MySaveFood" width="9710" height="8425">
 
 > *The diagram above illustrates the sequence of a Donor posting an item, the item appearing on the Student's feed, and the Student successfully claiming the item, which updates the database in real-time.*
 
