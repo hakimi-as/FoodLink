@@ -1,5 +1,5 @@
 # Project Proposal: MySaveFood
-Mobile Application Development Group Project
+INFO 4335 Section 01: MOBILE APPLICATION DEVELOPMENT Group Project
 
 ## a) Group Members
 | Name | Matric Number | Responsibilities |
