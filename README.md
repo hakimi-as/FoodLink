@@ -121,3 +121,4 @@ We will use **Cloud Firestore** (NoSQL) for the database.
 2.  **Firebase Documentation:** https://firebase.google.com/docs
 3.  **Provider Package:** https://pub.dev/packages/provider
 4.  **Material Design Guidelines:** https://material.io/design
+5.  **Olio - Food Sharing Revolution. (n.d.). Retrieved from https://olioapp.com/en/**
