@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "669111875092",
+    "project_id": "mysavefood-4bfd6",
+    "storage_bucket": "mysavefood-4bfd6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:669111875092:android:099e316c1bc222c9185901",
+        "android_client_info": {
+          "package_name": "com.example.mysavefood"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "669111875092-mn4g3eta9scb45lg8cu8b650j3g5kfak.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyASKMDAEFY6Am2181PXKQ6mTOSzvjK9WEM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "669111875092-mn4g3eta9scb45lg8cu8b650j3g5kfak.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

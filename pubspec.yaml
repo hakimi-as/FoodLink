@@ -1,0 +1,40 @@
+name: mysavefood
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Firebase Core
+  firebase_core: ^3.6.0
+  firebase_auth: ^5.3.1
+  cloud_firestore: ^5.4.4
+
+  # State Management
+  provider: ^6.1.2
+
+  # Image & Storage
+  image_picker: ^1.1.2
+  cloudinary_public: ^0.23.0
+
+  # UI Utilities
+  google_fonts: ^6.2.1
+  intl: ^0.19.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+
+  # 1. ADDED THIS SECTION
+  assets:
+    - assets/
