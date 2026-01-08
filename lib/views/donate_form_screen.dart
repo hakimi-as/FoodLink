@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../providers/donation_provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/theme_provider.dart';
 
 class DonateFormScreen extends StatefulWidget {
   const DonateFormScreen({super.key});
@@ -26,9 +27,24 @@ class _DonateFormScreenState extends State<DonateFormScreen> {
   Widget build(BuildContext context) {
     final donationProvider = Provider.of<DonationProvider>(context);
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+
+    // --- Dynamic Colors ---
+    final bgColor = isDark ? const Color(0xFF121212) : Colors.white;
+    final textColor = isDark ? Colors.white : Colors.black;
+    // Fix: Explicitly cast nullable colors to non-null
+    final inputFillColor = isDark ? const Color(0xFF2C2C2C) : Colors.grey[50]!;
+    final borderColor = isDark ? Colors.grey[700]! : Colors.grey;
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Add Food Details")),
+      backgroundColor: bgColor,
+      appBar: AppBar(
+        title: Text("Add Food Details", style: TextStyle(color: textColor)),
+        backgroundColor: bgColor,
+        iconTheme: IconThemeData(color: textColor),
+        elevation: 0,
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -43,41 +59,28 @@ class _DonateFormScreenState extends State<DonateFormScreen> {
                   height: 200,
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: Colors.grey[200],
+                    color: inputFillColor,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey),
+                    border: Border.all(color: borderColor),
                   ),
                   child: donationProvider.selectedImage != null
                       ? _buildImagePreview(donationProvider.selectedImage!) 
                       : Column(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
+                          children: [
                             Icon(Icons.camera_alt, size: 50, color: Colors.grey),
-                            Text("Tap to add photo"),
+                            Text("Tap to add photo", style: TextStyle(color: textColor)),
                           ],
                         ),
                 ),
               ),
               const SizedBox(height: 20),
 
-              TextFormField(
-                controller: _titleController,
-                decoration: const InputDecoration(labelText: "Menu Title", border: OutlineInputBorder()),
-                validator: (val) => val!.isEmpty ? "Required" : null,
-              ),
+              _buildTextField(_titleController, "Menu Title", textColor, inputFillColor),
               const SizedBox(height: 12),
-              
-              TextFormField(
-                controller: _descController,
-                decoration: const InputDecoration(labelText: "Description", border: OutlineInputBorder()),
-              ),
+              _buildTextField(_descController, "Description", textColor, inputFillColor),
               const SizedBox(height: 12),
-
-              TextFormField(
-                controller: _locationController,
-                decoration: const InputDecoration(labelText: "Pickup Location", border: OutlineInputBorder()),
-                validator: (val) => val!.isEmpty ? "Required" : null,
-              ),
+              _buildTextField(_locationController, "Pickup Location", textColor, inputFillColor),
               const SizedBox(height: 20),
 
               // Quantity & Time
@@ -87,7 +90,7 @@ class _DonateFormScreenState extends State<DonateFormScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text("Quantity", style: TextStyle(fontWeight: FontWeight.bold)),
+                        Text("Quantity", style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
                         Row(
                           children: [
                             IconButton(
@@ -96,7 +99,7 @@ class _DonateFormScreenState extends State<DonateFormScreen> {
                                 if (_quantity > 1) setState(() => _quantity--);
                               },
                             ),
-                            Text("$_quantity", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                            Text("$_quantity", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor)),
                             IconButton(
                               icon: const Icon(Icons.add_circle, color: Colors.green),
                               onPressed: () => setState(() => _quantity++),
@@ -110,10 +113,10 @@ class _DonateFormScreenState extends State<DonateFormScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text("Best Before", style: TextStyle(fontWeight: FontWeight.bold)),
+                        Text("Best Before", style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
                         TextButton.icon(
-                          icon: const Icon(Icons.access_time),
-                          label: Text(_selectedTime.format(context)),
+                          icon: const Icon(Icons.access_time, color: Colors.orange),
+                          label: Text(_selectedTime.format(context), style: TextStyle(color: textColor)),
                           onPressed: () async {
                             final TimeOfDay? picked = await showTimePicker(
                               context: context,
@@ -132,14 +135,14 @@ class _DonateFormScreenState extends State<DonateFormScreen> {
               // Halal Checkbox
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.green[50],
+                  color: isDark ? const Color(0xFF1B5E20) : Colors.green[50], 
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: Colors.green.withOpacity(0.5))
                 ),
                 child: CheckboxListTile(
                   activeColor: Colors.green,
-                  title: const Text("Halal Confirmation"),
-                  subtitle: const Text("I confirm this food is Halal."),
+                  title: Text("Halal Confirmation", style: TextStyle(color: textColor)),
+                  subtitle: Text("I confirm this food is Halal.", style: TextStyle(color: isDark ? Colors.grey[300] : Colors.grey[600])),
                   value: _isHalalConfirmed,
                   onChanged: (val) => setState(() => _isHalalConfirmed = val!),
                 ),
@@ -180,7 +183,7 @@ class _DonateFormScreenState extends State<DonateFormScreen> {
 
                           if (error == null && context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Food Posted Successfully!")));
-                            Navigator.pop(context); // Go back to the list after posting
+                            Navigator.pop(context);
                           } else if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error ?? "Error")));
                           }
@@ -192,6 +195,22 @@ class _DonateFormScreenState extends State<DonateFormScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label, Color textColor, Color fillColor) {
+    return TextFormField(
+      controller: controller,
+      style: TextStyle(color: textColor),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: Colors.grey),
+        filled: true,
+        fillColor: fillColor,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.grey)),
+      ),
+      validator: (val) => val!.isEmpty ? "Required" : null,
     );
   }
 

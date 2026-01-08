@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/donation_service.dart';
 import '../models/food_item_model.dart';
 
@@ -8,18 +9,15 @@ class DonationProvider with ChangeNotifier {
   final ImagePicker _picker = ImagePicker();
   
   bool _isLoading = false;
-  
-  // CHANGED: Use XFile instead of File
   XFile? _selectedImage;
 
   bool get isLoading => _isLoading;
   XFile? get selectedImage => _selectedImage;
 
-  // Pick Image
   Future<void> pickImage(ImageSource source) async {
     final XFile? pickedFile = await _picker.pickImage(source: source, imageQuality: 50);
     if (pickedFile != null) {
-      _selectedImage = pickedFile; // Store XFile directly
+      _selectedImage = pickedFile;
       notifyListeners();
     }
   }
@@ -29,7 +27,6 @@ class DonationProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // Submit Form
   Future<String?> submitDonation({
     required String donorId,
     required String donorName,
@@ -45,7 +42,6 @@ class DonationProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      // Pass the XFile directly to the service
       String? imageUrl = await _service.uploadImage(_selectedImage!);
       if (imageUrl == null) throw "Image upload failed";
 
@@ -78,18 +74,36 @@ class DonationProvider with ChangeNotifier {
     }
   }
 
-  // NEW: Call the service to update quantity
   Future<void> updateFoodQuantity(String itemId, int newQuantity) async {
-    // Prevent negative quantities
     if (newQuantity < 0) return;
-
     try {
       await _service.updateFoodQuantity(itemId, newQuantity);
-      // No need to notifyListeners() here because the StreamBuilder in the UI 
-      // will automatically detect the change in Firestore and rebuild.
     } catch (e) {
-      // You can handle errors here if needed (e.g., show a toast or log it)
       rethrow; 
+    }
+  }
+
+  // --- UPDATED TO MATCH YOUR INDEX NAMES ---
+  Future<void> recordClaim({
+    required String foodId,
+    required String foodTitle,
+    required String donorId,
+    required String receiverId,
+    required int quantityClaimed,
+  }) async {
+    try {
+      await FirebaseFirestore.instance.collection('claims').add({
+        'foodId': foodId,
+        'foodTitle': foodTitle,       // Matches HistoryScreen reader
+        'donorId': donorId,
+        'studentId': receiverId,      // MATCHES YOUR INDEX (was receiverId)
+        'quantity': quantityClaimed,  // Matches HistoryScreen reader
+        'claimedAt': FieldValue.serverTimestamp(), // MATCHES YOUR INDEX (was claimTime)
+        'status': 'completed',
+      });
+    } catch (e) {
+      print("Error recording history: $e");
+      throw e;
     }
   }
 }

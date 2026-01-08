@@ -1,62 +1,201 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart'; 
-import '../../providers/feed_provider.dart';
-import '../../providers/auth_provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 import '../../models/food_item_model.dart';
+import '../../providers/theme_provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/donation_provider.dart';
+import '../../widgets/hover_widgets.dart'; // <--- IMPORT THE NEW WIDGETS
 
-class FeedTab extends StatefulWidget {
+class FeedTab extends StatelessWidget {
   const FeedTab({super.key});
 
   @override
-  State<FeedTab> createState() => _FeedTabState();
-}
-
-class _FeedTabState extends State<FeedTab> {
-  late Stream<List<FoodItem>> _foodStream;
-
-  @override
-  void initState() {
-    super.initState();
-    final feedProvider = Provider.of<FeedProvider>(context, listen: false);
-    _foodStream = feedProvider.availableFoodStream;
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final feedProvider = Provider.of<FeedProvider>(context, listen: false);
+    final themeProvider = Provider.of<ThemeProvider>(context);
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final donationProvider =
+        Provider.of<DonationProvider>(context, listen: false);
+
+    final isDark = themeProvider.isDarkMode;
+
+    final bgColor = isDark ? const Color(0xFF121212) : const Color(0xFFFAFAF9);
+    final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final textColor = isDark ? Colors.white : const Color(0xFF1F2937);
+    final subTextColor = isDark ? Colors.grey[400] : Colors.grey[500];
 
     return Scaffold(
+      backgroundColor: bgColor,
       appBar: AppBar(
+        centerTitle: true,
         title: Row(
+          mainAxisSize: MainAxisSize.min,
           children: const [
-            Text("Pick Up Food", style: TextStyle(fontWeight: FontWeight.bold)),
-            SizedBox(width: 8),
-            Icon(Icons.rice_bowl, color: Colors.orange),
+            Text("Pick Up Food",
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange,
+                    fontSize: 28)),
+            SizedBox(width: 10),
+            Icon(Icons.restaurant, color: Colors.orange, size: 30),
           ],
         ),
+        backgroundColor: bgColor,
+        elevation: 0,
+        iconTheme: IconThemeData(color: textColor),
       ),
-      body: StreamBuilder<List<FoodItem>>(
-        stream: _foodStream, 
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('food_items')
+            .where('status', isEqualTo: 'available')
+            .orderBy('postedTime', descending: true)
+            .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (snapshot.hasError) {
-             return Center(child: Text("Error: ${snapshot.error}"));
-          }
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text("No food available right now. Check back later!"));
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.fastfood_outlined,
+                      size: 60, color: subTextColor),
+                  const SizedBox(height: 16),
+                  Text("No food available right now.",
+                      style: TextStyle(color: textColor)),
+                ],
+              ),
+            );
           }
 
-          final items = snapshot.data!;
+          final docs = snapshot.data!.docs;
 
           return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: items.length,
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+            itemCount: docs.length,
             itemBuilder: (context, index) {
-              return _buildFoodCard(context, items[index], feedProvider, authProvider);
+              final data = docs[index].data() as Map<String, dynamic>;
+              FoodItem item;
+              try {
+                item = FoodItem.fromMap(data);
+              } catch (e) {
+                return const SizedBox();
+              }
+
+              // --- 1. HOVER SCALER FROM SHARED FILE ---
+              return HoverScaler(
+                scaleFactor: 1.02,
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: cardColor,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05), // FIXED
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (item.imageUrl != null && item.imageUrl!.isNotEmpty)
+                        ClipRRect(
+                          borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(20)),
+                          child: Image.network(
+                            item.imageUrl!,
+                            height: 150,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Container(
+                              height: 150,
+                              color: isDark ? Colors.grey[800] : Colors.grey[200],
+                              child: const Center(
+                                  child: Icon(Icons.broken_image,
+                                      color: Colors.grey)),
+                            ),
+                          ),
+                        ),
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(item.title,
+                                      style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: textColor)),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 5),
+                                  decoration: BoxDecoration(
+                                    color: Colors.green.withValues(alpha: 0.1), // FIXED
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Text("${item.quantity} Left",
+                                      style: const TextStyle(
+                                          color: Colors.green,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12)),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                const Icon(Icons.location_on,
+                                    size: 14, color: Colors.orange),
+                                const SizedBox(width: 4),
+                                Text(item.pickupLocation,
+                                    style: TextStyle(
+                                        fontSize: 14, color: subTextColor)),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                    "Posted: ${DateFormat('h:mm a').format(item.postedTime)}",
+                                    style: TextStyle(
+                                        fontSize: 12, color: subTextColor)),
+                                
+                                // --- 2. GRADIENT BUTTON FROM SHARED FILE ---
+                                HoverGradientButton(
+                                  text: "Pick Up",
+                                  width: 100,
+                                  height: 40,
+                                  onTap: () {
+                                    if (item.quantity <= 0) return;
+                                    _showClaimDialog(
+                                        context,
+                                        item,
+                                        authProvider,
+                                        donationProvider,
+                                        isDark);
+                                  },
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
             },
           );
         },
@@ -64,160 +203,122 @@ class _FeedTabState extends State<FeedTab> {
     );
   }
 
-  Widget _buildFoodCard(BuildContext context, FoodItem item, FeedProvider feedProvider, AuthProvider authProvider) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      color: const Color(0xFFFFE0B2), 
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Image with Halal Badge
-                Stack(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
-                        item.imageUrl,
-                        width: 80,
-                        height: 80,
-                        fit: BoxFit.cover,
-                        errorBuilder: (ctx, err, stack) => Container(
-                          width: 80, height: 80, color: Colors.grey, 
-                          child: const Icon(Icons.broken_image)
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(2),
-                        color: Colors.white.withOpacity(0.8),
-                        child: const Text("HALAL", style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.green)),
-                      ),
-                    )
-                  ],
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("Location: ${item.pickupLocation}", style: const TextStyle(fontWeight: FontWeight.bold)),
-                      Text("Menu: ${item.title}"),
-                      const SizedBox(height: 4),
-                      Text("Posted: ${DateFormat('h:mm a').format(item.postedTime)}",
-                          style: TextStyle(fontSize: 12, color: Colors.grey[700])),
-                    ],
-                  ),
-                ),
-                Column(
-                  children: [
-                    // NEW: Report Button
-                    IconButton(
-                      icon: const Icon(Icons.flag_outlined, color: Colors.grey, size: 20),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      onPressed: () => _showReportDialog(context, item.title),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text("Left:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                    Text("${item.quantity}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
-                  ],
-                )
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(color: Colors.red[100], borderRadius: BorderRadius.circular(20)),
-                  child: Text(
-                    "Best Before: ${DateFormat('h:mm a').format(item.expiryTime)}",
-                    style: const TextStyle(color: Colors.red, fontSize: 12, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                const Spacer(),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.greenAccent[400], foregroundColor: Colors.black),
-                  onPressed: () => _showClaimDialog(context, item, feedProvider, authProvider),
-                  child: const Text("Claim", style: TextStyle(fontWeight: FontWeight.bold)),
-                ),
-              ],
-            )
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showClaimDialog(BuildContext context, FoodItem item, FeedProvider feedProvider, AuthProvider authProvider) {
-    int quantityToClaim = 1; 
+  void _showClaimDialog(
+      BuildContext parentContext,
+      FoodItem item,
+      AuthProvider authProvider,
+      DonationProvider donationProvider,
+      bool isDark) {
+    int claimQuantity = 1;
 
     showDialog(
-      context: context,
-      builder: (ctx) {
+      context: parentContext,
+      barrierDismissible: false,
+      builder: (dialogContext) {
         return StatefulBuilder(
-          builder: (context, setState) {
+          builder: (stateContext, setDialogState) {
             return AlertDialog(
-              title: Text("Claim ${item.title}"),
+              backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
+              title: Text("Claim Food",
+                  style: TextStyle(
+                      color: isDark ? Colors.white : Colors.black,
+                      fontWeight: FontWeight.bold)),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text("How many packs do you want?"),
+                  Text("Select Quantity to Pickup",
+                      style: TextStyle(
+                          color: isDark ? Colors.grey[400] : Colors.grey[600])),
                   const SizedBox(height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      IconButton(
-                        icon: const Icon(Icons.remove_circle, color: Colors.red, size: 32),
-                        onPressed: () {
-                          if (quantityToClaim > 1) setState(() => quantityToClaim--);
+                      HoverScaler(
+                        scaleFactor: 1.1,
+                        onTap: () {
+                          if (claimQuantity > 1) {
+                            setDialogState(() => claimQuantity--);
+                          }
                         },
+                        child: const Icon(Icons.remove_circle,
+                            color: Colors.red, size: 36),
                       ),
                       const SizedBox(width: 20),
-                      Text("$quantityToClaim", style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                      Text("$claimQuantity",
+                          style: TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : Colors.black)),
                       const SizedBox(width: 20),
-                      IconButton(
-                        icon: const Icon(Icons.add_circle, color: Colors.green, size: 32),
-                        onPressed: () {
-                          if (quantityToClaim < item.quantity) setState(() => quantityToClaim++);
+                      HoverScaler(
+                        scaleFactor: 1.1,
+                        onTap: () {
+                          if (claimQuantity < item.quantity) {
+                            setDialogState(() => claimQuantity++);
+                          }
                         },
+                        child: const Icon(Icons.add_circle,
+                            color: Colors.green, size: 36),
                       ),
                     ],
                   ),
                   const SizedBox(height: 10),
-                  Text("Max available: ${item.quantity}", style: const TextStyle(color: Colors.grey)),
+                  Text("Max Available: ${item.quantity}",
+                      style: const TextStyle(color: Colors.grey, fontSize: 12)),
                 ],
               ),
               actions: [
-                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Cancel")),
-                ElevatedButton(
-                  onPressed: () async {
-                    Navigator.pop(ctx);
-                    String? error = await feedProvider.claimFood(
-                      item.id, 
-                      authProvider.currentUserModel!.uid,
-                      authProvider.currentUserModel!.name,
-                      quantityToClaim, 
-                    );
-                    if (error == null && context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Successfully claimed $quantityToClaim item(s)!")));
-                    } else if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $error")));
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
+                ),
+                
+                HoverGradientButton(
+                  text: "Confirm",
+                  width: 120,
+                  height: 45,
+                  onTap: () async {
+                    try {
+                      final currentUser = authProvider.currentUserModel;
+                      if (currentUser == null) {
+                        ScaffoldMessenger.of(parentContext).showSnackBar(
+                            const SnackBar(content: Text("Please login first.")));
+                        return;
+                      }
+
+                      Navigator.pop(dialogContext);
+
+                      await donationProvider.updateFoodQuantity(
+                          item.id, item.quantity - claimQuantity);
+                      await FirebaseFirestore.instance
+                          .collection('claims')
+                          .add({
+                        'foodId': item.id,
+                        'foodTitle': item.title,
+                        'donorId': item.donorId,
+                        'studentId': currentUser.uid,
+                        'claimedAt': FieldValue.serverTimestamp(),
+                        'quantityClaimed': claimQuantity,
+                        'status': 'pending',
+                      });
+
+                      if (parentContext.mounted) {
+                        _showSuccessDialog(
+                            parentContext,
+                            "Claim Successful!",
+                            "You claimed $claimQuantity item(s).\nPlease pick it up soon!",
+                            isDark);
+                      }
+                    } catch (e) {
+                      if (parentContext.mounted) {
+                        ScaffoldMessenger.of(parentContext).showSnackBar(
+                            SnackBar(content: Text("Error: $e")));
+                      }
                     }
                   },
-                  child: const Text("Confirm"),
-                )
+                ),
               ],
             );
           },
@@ -226,25 +327,52 @@ class _FeedTabState extends State<FeedTab> {
     );
   }
 
-  // NEW: Report Dialog
-  void _showReportDialog(BuildContext context, String foodTitle) {
+  void _showSuccessDialog(
+      BuildContext context, String title, String message, bool isDark) {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text("Report Item"),
-        content: Text("Do you want to report '$foodTitle' for violation (e.g., Not Halal, Fake)?"),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Cancel")),
-          TextButton(
-            onPressed: () {
-              // In a real app, you would save this to a 'reports' collection in Firestore
-              Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Report submitted. Admins will review.")));
-            },
-            child: const Text("Report", style: TextStyle(color: Colors.red)),
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24)),
+        backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.green.withValues(alpha: 0.1), // FIXED
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.check_circle_rounded,
+                    size: 70, color: Colors.green),
+              ),
+              const SizedBox(height: 24),
+              Text(title,
+                  style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : Colors.black)),
+              const SizedBox(height: 8),
+              Text(message,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      fontSize: 16,
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      height: 1.5)),
+              const SizedBox(height: 32),
+              
+              HoverGradientButton(
+                text: "Awesome",
+                colorStart: Colors.green,
+                colorEnd: Colors.teal,
+                onTap: () => Navigator.pop(context),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

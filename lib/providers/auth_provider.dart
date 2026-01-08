@@ -1,60 +1,99 @@
-import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../services/auth_service.dart';
+import 'package:flutter/material.dart';
 import '../models/user_model.dart';
+import '../services/auth_service.dart';
 
-class AuthProvider with ChangeNotifier {
+class AuthProvider extends ChangeNotifier {
   final AuthService _authService = AuthService();
-  UserModel? _currentUserModel;
+  UserModel? _user;
   bool _isLoading = false;
 
-  UserModel? get currentUserModel => _currentUserModel;
+  UserModel? get currentUserModel => _user;
   bool get isLoading => _isLoading;
 
-  // Register
-  Future<String?> register(String email, String password, String name, String role) async {
-    _isLoading = true;
+  void _setLoading(bool value) {
+    _isLoading = value;
     notifyListeners();
+  }
+
+  // --- LOGIN (FIXED) ---
+  Future<String?> login(String email, String password) async {
+    _setLoading(true);
     try {
-      _currentUserModel = await _authService.register(
+      // 1. Authenticate with Firebase
+      User? firebaseUser = await _authService.login(email, password);
+
+      // 2. FETCH USER DETAILS from Firestore
+      if (firebaseUser != null) {
+        _user = await _authService.getUserDetails(firebaseUser.uid);
+      }
+
+      _setLoading(false);
+      return null;
+    } catch (e) {
+      _setLoading(false);
+      return e.toString();
+    }
+  }
+
+  // --- REGISTER ---
+  Future<String?> register(String email, String password, String name,
+      String role, String phone) async {
+    _setLoading(true);
+    try {
+      _user = await _authService.register(
         email: email,
         password: password,
         name: name,
         role: role,
+        phone: phone,
       );
-      _isLoading = false;
-      notifyListeners();
-      return null; // No error
+      _setLoading(false);
+      return null;
     } catch (e) {
-      _isLoading = false;
-      notifyListeners();
+      _setLoading(false);
       return e.toString();
     }
   }
 
-  // Login
-  Future<String?> login(String email, String password) async {
-    _isLoading = true;
-    notifyListeners();
+  // --- GOOGLE LOGIN ---
+  Future<String?> googleLogin() async {
+    _setLoading(true);
     try {
-      User? user = await _authService.login(email, password);
-      if (user != null) {
-        // Fetch role data from Firestore
-        _currentUserModel = await _authService.getUserDetails(user.uid);
+      _user = await _authService.signInWithGoogle();
+
+      if (_user != null) {
+        _setLoading(false);
+        return null;
+      } else {
+        _setLoading(false);
+        return "Google Sign-In Cancelled";
       }
-      _isLoading = false;
+    } catch (e) {
+      _setLoading(false);
+      return e.toString();
+    }
+  }
+
+  // --- UPDATE USER ---
+  Future<String?> updateUser(UserModel updatedUser) async {
+    _setLoading(true);
+    try {
+      await _authService.updateUser(updatedUser);
+      _user = updatedUser;
+      _setLoading(false);
       notifyListeners();
       return null;
     } catch (e) {
-      _isLoading = false;
-      notifyListeners();
+      _setLoading(false);
       return e.toString();
     }
   }
 
-  void logout() {
-    _authService.signOut();
-    _currentUserModel = null;
+  // --- LOGOUT ---
+  Future<void> logout() async {
+    await _authService.signOut();
+    _user = null;
     notifyListeners();
   }
 }

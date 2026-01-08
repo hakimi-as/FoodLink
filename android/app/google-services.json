@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "669111875092-66bpl80cfo8bjcumc2i7qvsqdi3a4phv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.mysavefood",
+            "certificate_hash": "6b5c0b212ce43ea6abc823cf9ea0108778ab0d5d"
+          }
+        },
+        {
           "client_id": "669111875092-mn4g3eta9scb45lg8cu8b650j3g5kfak.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -29,6 +37,13 @@
             {
               "client_id": "669111875092-mn4g3eta9scb45lg8cu8b650j3g5kfak.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "669111875092-36fcqbp0tpoor649p7rcd8v67r8le08b.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.mysavefood"
+              }
             }
           ]
         }
