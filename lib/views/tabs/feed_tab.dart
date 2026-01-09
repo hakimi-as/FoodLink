@@ -6,7 +6,7 @@ import '../../models/food_item_model.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/donation_provider.dart';
-import '../../widgets/hover_widgets.dart'; // <--- IMPORT THE NEW WIDGETS
+import '../../widgets/hover_widgets.dart';
 
 class FeedTab extends StatelessWidget {
   const FeedTab({super.key});
@@ -84,7 +84,7 @@ class FeedTab extends StatelessWidget {
                 return const SizedBox();
               }
 
-              // --- 1. HOVER SCALER FROM SHARED FILE ---
+              // --- 1. HOVER SCALER ---
               return HoverScaler(
                 scaleFactor: 1.02,
                 child: Container(
@@ -94,7 +94,7 @@ class FeedTab extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05), // FIXED
+                        color: Colors.black.withValues(alpha: 0.05),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -141,7 +141,7 @@ class FeedTab extends StatelessWidget {
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 10, vertical: 5),
                                   decoration: BoxDecoration(
-                                    color: Colors.green.withValues(alpha: 0.1), // FIXED
+                                    color: Colors.green.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Text("${item.quantity} Left",
@@ -172,7 +172,7 @@ class FeedTab extends StatelessWidget {
                                     style: TextStyle(
                                         fontSize: 12, color: subTextColor)),
                                 
-                                // --- 2. GRADIENT BUTTON FROM SHARED FILE ---
+                                // --- 2. GRADIENT BUTTON ---
                                 HoverGradientButton(
                                   text: "Pick Up",
                                   width: 100,
@@ -290,18 +290,21 @@ class FeedTab extends StatelessWidget {
 
                       Navigator.pop(dialogContext);
 
+                      // 1. Update Inventory (Subtract Quantity)
                       await donationProvider.updateFoodQuantity(
                           item.id, item.quantity - claimQuantity);
+
+                      // 2. CREATE HISTORY RECORD (Corrected Collection & Fields)
                       await FirebaseFirestore.instance
-                          .collection('claims')
+                          .collection('donations') // FIXED: 'donations', not 'claims'
                           .add({
-                        'foodId': item.id,
-                        'foodTitle': item.title,
+                        'foodItemId': item.id,      // Matching DonationService
+                        'title': item.title,        // Matching HistoryScreen
                         'donorId': item.donorId,
-                        'studentId': currentUser.uid,
-                        'claimedAt': FieldValue.serverTimestamp(),
-                        'quantityClaimed': claimQuantity,
-                        'status': 'pending',
+                        'receiverId': currentUser.uid, // Fixed: receiverId
+                        'timestamp': FieldValue.serverTimestamp(), // Fixed: timestamp
+                        'quantity': claimQuantity,
+                        'status': 'completed',
                       });
 
                       if (parentContext.mounted) {
@@ -343,7 +346,7 @@ class FeedTab extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.green.withValues(alpha: 0.1), // FIXED
+                  color: Colors.green.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.check_circle_rounded,

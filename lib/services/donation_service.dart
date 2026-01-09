@@ -2,8 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloudinary_public/cloudinary_public.dart';
 import 'package:image_picker/image_picker.dart'; // Import XFile
 import 'package:flutter/foundation.dart'; // Import kIsWeb
-import '../models/food_item_model.dart';
 import 'dart:typed_data';
+import '../models/food_item_model.dart';
 
 class DonationService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -48,7 +48,7 @@ class DonationService {
     }
   }
 
-  // NEW: Method to update the quantity of a food item
+  // Method to update the quantity of a food item
   Future<void> updateFoodQuantity(String itemId, int newQuantity) async {
     try {
       // If quantity reaches 0, mark it as claimed. Otherwise, it's available.
@@ -62,5 +62,59 @@ class DonationService {
       print("Error updating quantity: $e");
       throw e;
     }
+  }
+
+  // --- CRITICAL STEP: Creates the History Record ---
+  Future<void> createDonationRecord({
+    required String foodItemId,
+    required String foodTitle,
+    required String donorId,
+    required String receiverId,
+    required int quantity,
+  }) async {
+    try {
+      await _db.collection('donations').add({
+        'foodItemId': foodItemId,
+        'title': foodTitle,
+        'donorId': donorId,
+        'receiverId': receiverId,
+        'quantity': quantity,
+        'status': 'completed', 
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      print("Error creating donation record: $e");
+      throw e;
+    }
+  }
+
+  // --- HISTORY SCREEN STREAMS ---
+
+  // Stream for "My Claims"
+  Stream<List<Map<String, dynamic>>> getUserClaims(String uid) {
+    return _db
+        .collection('donations')
+        .where('receiverId', isEqualTo: uid)
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) {
+              var data = doc.data();
+              data['id'] = doc.id;
+              return data;
+            }).toList());
+  }
+
+  // Stream for "My Donations"
+  Stream<List<Map<String, dynamic>>> getUserDonations(String uid) {
+    return _db
+        .collection('donations')
+        .where('donorId', isEqualTo: uid)
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) {
+              var data = doc.data();
+              data['id'] = doc.id;
+              return data;
+            }).toList());
   }
 }

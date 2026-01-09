@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import '../../models/user_model.dart'; // Ensure UserModel is imported
+import '../../models/user_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/donation_service.dart';
 import '../../providers/theme_provider.dart';
@@ -34,7 +34,6 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
     final user = Provider.of<AuthProvider>(context, listen: false).currentUserModel;
     if (user != null) {
       _nameController.text = user.name;
-      // Matric is usually read-only or derived, keeping your logic:
       _matricController.text = user.role == 'student' ? "2212901" : "Staff/Donor";
       _phoneController.text = user.phone ?? "";
       _bioController.text = user.bio ?? "";
@@ -62,7 +61,6 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
       if (user != null) {
         String? uploadedImageUrl;
 
-        // 1. Upload new image if selected
         if (_imageFile != null) {
           uploadedImageUrl = await _donationService.uploadImage(_imageFile!);
           if (uploadedImageUrl == null) {
@@ -70,8 +68,6 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
           }
         }
 
-        // 2. Create the Updated User Model
-        // We preserve uid, email, and role from the original user
         UserModel updatedUser = UserModel(
           uid: user.uid,
           email: user.email,
@@ -79,11 +75,9 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
           name: _nameController.text.trim(),
           phone: _phoneController.text.trim(),
           bio: _bioController.text.trim(),
-          // Use new image if uploaded, otherwise keep the old one
           photoUrl: uploadedImageUrl ?? user.photoUrl,
         );
 
-        // 3. Send the object to the Provider
         String? error = await authProvider.updateUser(updatedUser);
 
         if (mounted) {
@@ -93,7 +87,6 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
             );
             Navigator.pop(context);
           } else {
-            // Show error returned by provider
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text("Error: $error")),
             );
@@ -182,7 +175,6 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
 
               _buildTextField("Full Name", _nameController, Icons.person, isDark),
               const SizedBox(height: 16),
-              // Matric is often read-only, you can add readOnly: true if needed
               _buildTextField("Matric Number", _matricController, Icons.badge, isDark), 
               const SizedBox(height: 16),
               _buildTextField("Phone Number", _phoneController, Icons.phone, isDark),
