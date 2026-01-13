@@ -7,7 +7,7 @@ import '../models/user_model.dart';
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _db = FirebaseFirestore.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn(); 
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   Stream<User?> get user => _auth.authStateChanges();
 
@@ -28,12 +28,11 @@ class AuthService {
 
       if (user != null) {
         UserModel newUser = UserModel(
-          uid: user.uid, 
-          email: email, 
-          name: name, 
-          role: role, 
-          phone: phone
-        );
+            uid: user.uid,
+            email: email,
+            name: name,
+            role: role,
+            phone: phone);
         await _db.collection('users').doc(user.uid).set(newUser.toMap());
         return newUser;
       }
@@ -56,44 +55,52 @@ class AuthService {
     }
   }
 
-  // --- GOOGLE SIGN IN (Stable v6.2.1 Logic) ---
-  Future<UserModel?> signInWithGoogle() async {
+  // --- 1. MODIFIED GOOGLE SIGN IN ---
+  // Returns Firebase User (Authentication only), NOT UserModel (Database)
+  Future<User?> signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) return null; 
+      if (googleUser == null) return null;
 
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
 
       final AuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken, // v6.2.1 supports this safely
+        accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      final UserCredential userCredential = await _auth.signInWithCredential(credential);
-      final User? user = userCredential.user;
-
-      if (user != null) {
-        DocumentSnapshot doc = await _db.collection('users').doc(user.uid).get();
-
-        if (!doc.exists) {
-          UserModel newUser = UserModel(
-            uid: user.uid,
-            email: user.email ?? "",
-            name: user.displayName ?? "New User",
-            role: 'student', 
-            phone: user.phoneNumber ?? "",
-            photoUrl: user.photoURL,
-          );
-          await _db.collection('users').doc(user.uid).set(newUser.toMap());
-          return newUser;
-        } else {
-          return UserModel.fromMap(doc.data() as Map<String, dynamic>, user.uid);
-        }
-      }
-      return null;
+      final UserCredential userCredential =
+          await _auth.signInWithCredential(credential);
+      return userCredential.user;
     } catch (e) {
       throw e.toString();
     }
+  }
+
+  // --- 2. NEW: CHECK IF USER EXISTS IN DB ---
+  Future<UserModel?> checkUserInFirestore(String uid) async {
+    DocumentSnapshot doc = await _db.collection('users').doc(uid).get();
+    if (doc.exists) {
+      return UserModel.fromMap(doc.data() as Map<String, dynamic>, uid);
+    }
+    return null; // User is authenticated but has no profile (New User)
+  }
+
+  // --- 3. NEW: FINALIZE REGISTRATION (Save with selected Role) ---
+  Future<UserModel> finalizeGoogleRegistration(
+      User firebaseUser, String role) async {
+    UserModel newUser = UserModel(
+      uid: firebaseUser.uid,
+      email: firebaseUser.email ?? "",
+      name: firebaseUser.displayName ?? "New User",
+      role: role, // <--- Role is now passed dynamically
+      phone: firebaseUser.phoneNumber ?? "",
+      photoUrl: firebaseUser.photoURL,
+    );
+
+    await _db.collection('users').doc(firebaseUser.uid).set(newUser.toMap());
+    return newUser;
   }
 
   // --- UPDATE USER ---

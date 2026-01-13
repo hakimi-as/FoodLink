@@ -15,15 +15,19 @@ class AuthProvider extends ChangeNotifier {
     _isLoading = value;
     notifyListeners();
   }
+  
+  // --- NEW: Manually set user (For Role Selection Screen) ---
+  void setCurrentUser(UserModel user) {
+    _user = user;
+    notifyListeners();
+  }
 
-  // --- LOGIN (FIXED) ---
+  // --- LOGIN ---
   Future<String?> login(String email, String password) async {
     _setLoading(true);
     try {
-      // 1. Authenticate with Firebase
       User? firebaseUser = await _authService.login(email, password);
 
-      // 2. FETCH USER DETAILS from Firestore
       if (firebaseUser != null) {
         _user = await _authService.getUserDetails(firebaseUser.uid);
       }
@@ -50,25 +54,6 @@ class AuthProvider extends ChangeNotifier {
       );
       _setLoading(false);
       return null;
-    } catch (e) {
-      _setLoading(false);
-      return e.toString();
-    }
-  }
-
-  // --- GOOGLE LOGIN ---
-  Future<String?> googleLogin() async {
-    _setLoading(true);
-    try {
-      _user = await _authService.signInWithGoogle();
-
-      if (_user != null) {
-        _setLoading(false);
-        return null;
-      } else {
-        _setLoading(false);
-        return "Google Sign-In Cancelled";
-      }
     } catch (e) {
       _setLoading(false);
       return e.toString();

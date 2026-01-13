@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+// FIX 1: Hide AuthProvider from Firebase to avoid conflict
+import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider; 
 import '../providers/auth_provider.dart';
+import '../services/auth_service.dart';
+import '../models/user_model.dart';
 import 'register_screen.dart';
-// Note: We removed the import for home_screen.dart because AuthWrapper handles navigation now.
+import 'role_selection_screen.dart';
+import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -17,6 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isPasswordVisible = false;
+  bool _isGoogleLoading = false;
 
   // Colors
   final Color _primaryColor = const Color(0xFFEA580C);
@@ -41,7 +47,8 @@ class _LoginScreenState extends State<LoginScreen> {
               borderRadius: BorderRadius.circular(40),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  // FIX 2: Use withValues instead of withOpacity
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 25,
                   offset: const Offset(0, 10),
                 ),
@@ -61,7 +68,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: _primaryColor.withOpacity(0.2),
+                          color: _primaryColor.withValues(alpha: 0.2),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         )
@@ -129,7 +136,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 32),
 
-                  // 5. Login Button (FIXED)
+                  // 5. Login Button
                   Container(
                     width: double.infinity,
                     height: 56,
@@ -140,7 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: _primaryColor.withOpacity(0.3),
+                          color: _primaryColor.withValues(alpha: 0.3),
                           blurRadius: 12,
                           offset: const Offset(0, 6),
                         ),
@@ -157,22 +164,16 @@ class _LoginScreenState extends State<LoginScreen> {
                           ? null
                           : () async {
                               if (_formKey.currentState!.validate()) {
-                                // 1. Attempt Login
                                 String? error = await authProvider.login(
                                   _emailController.text.trim(),
                                   _passwordController.text.trim(),
                                 );
 
-                                // 2. Handle Result
                                 if (context.mounted) {
                                   if (error != null) {
-                                    // If Error: Show Snackbar
                                     ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(content: Text(error)));
-                                  } 
-                                  // If Success: Do NOTHING.
-                                  // The AuthWrapper in main.dart listens to the provider 
-                                  // and will automatically switch to HomeScreen.
+                                  }
                                 }
                               }
                             },
@@ -206,7 +207,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // 7. Google Button (FIXED)
+                  // 7. Google Button
                   SizedBox(
                     width: double.infinity,
                     height: 56,
@@ -218,45 +219,88 @@ class _LoginScreenState extends State<LoginScreen> {
                             borderRadius: BorderRadius.circular(16)),
                         elevation: 0,
                       ),
-                      onPressed: () async {
-                        final provider =
-                            Provider.of<AuthProvider>(context, listen: false);
+                      onPressed: _isGoogleLoading
+                          ? null
+                          : () async {
+                              setState(() => _isGoogleLoading = true);
+                              final authService = AuthService();
+                              final authProvider = Provider.of<AuthProvider>(
+                                  context,
+                                  listen: false);
 
-                        String? error = await provider.googleLogin();
+                              try {
+                                User? firebaseUser =
+                                    await authService.signInWithGoogle();
 
-                        if (context.mounted) {
-                          // Only handle errors. Success is handled by AuthWrapper.
-                          if (error != null && error != "Google Sign-In Cancelled") {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                  content: Text(error),
-                                  backgroundColor: Colors.red),
-                            );
-                          }
-                        }
-                      },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Image.network(
-                            'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/480px-Google_%22G%22_logo.svg.png',
-                            height: 24,
-                            errorBuilder: (c, e, s) => const Icon(
-                                Icons.g_mobiledata,
-                                color: Colors.blue,
-                                size: 24),
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            "Google",
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey[600],
+                                if (firebaseUser != null) {
+                                  UserModel? existingUser = await authService
+                                      .checkUserInFirestore(firebaseUser.uid);
+
+                                  if (existingUser != null) {
+                                    authProvider.setCurrentUser(existingUser);
+                                    if (context.mounted) {
+                                      Navigator.pushAndRemoveUntil(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                const HomeScreen()),
+                                        (route) => false,
+                                      );
+                                    }
+                                  } else {
+                                    if (context.mounted) {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              RoleSelectionScreen(
+                                                  firebaseUser: firebaseUser),
+                                        ),
+                                      );
+                                    }
+                                  }
+                                }
+                              } catch (e) {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                        content: Text("Login Failed: $e"),
+                                        backgroundColor: Colors.red),
+                                  );
+                                }
+                              } finally {
+                                if (mounted) {
+                                  setState(() => _isGoogleLoading = false);
+                                }
+                              }
+                            },
+                      child: _isGoogleLoading
+                          ? const SizedBox(
+                              height: 24,
+                              width: 24,
+                              child: CircularProgressIndicator(strokeWidth: 2))
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Image.network(
+                                  'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/480px-Google_%22G%22_logo.svg.png',
+                                  height: 24,
+                                  errorBuilder: (c, e, s) => const Icon(
+                                      Icons.g_mobiledata,
+                                      color: Colors.blue,
+                                      size: 24),
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  "Google",
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                        ],
-                      ),
                     ),
                   ),
 
@@ -295,8 +339,6 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
-
-  // --- Helper Widgets ---
 
   Widget _buildLabel(String text) {
     return Padding(
