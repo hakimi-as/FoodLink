@@ -130,14 +130,23 @@ We will use **Cloud Firestore** (NoSQL) for the database.
 
 ## 1. Final UI Screenshots
 ### A. Login/Registration Page
-<figcaption><strong>Figure 6:</strong> Registration Page</figcaption><img src="finalreport/register.jpg" alt="Registration_Page_MySaveFood" width="200">
-<figcaption><strong>Figure 7:</strong> Login Page</figcaption><img src="finalreport/login.jpg" alt="Login_Page_MySaveFood" width="200">
+<figcaption><strong>Figure 6:</strong> Registration Page</figcaption><img src="finalreport/register.jpg" width="200">
+<figcaption><strong>Figure 7:</strong> Login Page</figcaption><img src="finalreport/login.jpg" width="200">
 
 ### B. Student (Receiver) Ecosystem
+<figcaption><strong>Figure 8:</strong> Receiver Account Page</figcaption><img src="finalreport/receiver_page.jpg" width="200">
+<figcaption><strong>Figure 9:</strong> Receiver Pickup Food Page</figcaption><img src="finalreport/receiver_pickup.jpg" width="200">
+<figcaption><strong>Figure 10:</strong> Receiver Donate Food Page (Restricted)</figcaption><img src="finalreport/receiver_donate.jpg" width="200">
 
 ### C. Donor (Cafe Owner) Ecosystem
+<figcaption><strong>Figure 8:</strong> Donor Account Page</figcaption><img src="finalreport/donor_page.jpg" width="200">
+<figcaption><strong>Figure 8:</strong> Donor Donate Food Page</figcaption><img src="finalreport/donor_donate.jpg" width="200">
+<figcaption><strong>Figure 8:</strong> Donor Add Food Page</figcaption><img src="finalreport/donor_addfood.jpg" width="200">
 
 ### D. Admin (Moderation) Ecosystem
+<figcaption><strong>Figure 8:</strong> Admin Account Page</figcaption><img src="finalreport/admin_page.jpg" width="200">
+<figcaption><strong>Figure 8:</strong> Admin Dashboard (Manage Users)</figcaption><img src="finalreport/admin_dash1.jpg" width="200">
+<figcaption><strong>Figure 8:</strong> Admin Dashboard (Manage Food)</figcaption><img src="finalreport/admin_dash2.jpg" width="200">
 
 ---
 
