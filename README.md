@@ -139,14 +139,14 @@ We will use **Cloud Firestore** (NoSQL) for the database.
 <figcaption><strong>Figure 10:</strong> Receiver Donate Food Page (Restricted)</figcaption><img src="finalreport/receiver_donate.jpg" width="200">
 
 ### C. Donor (Cafe Owner) Ecosystem
-<figcaption><strong>Figure 8:</strong> Donor Account Page</figcaption><img src="finalreport/donor_page.jpg" width="200">
-<figcaption><strong>Figure 8:</strong> Donor Donate Food Page</figcaption><img src="finalreport/donor_donate.jpg" width="200">
-<figcaption><strong>Figure 8:</strong> Donor Add Food Page</figcaption><img src="finalreport/donor_addfood.jpg" width="200">
+<figcaption><strong>Figure 11:</strong> Donor Account Page</figcaption><img src="finalreport/donor_page.jpg" width="200">
+<figcaption><strong>Figure 12:</strong> Donor Donate Food Page</figcaption><img src="finalreport/donor_donate.jpg" width="200">
+<figcaption><strong>Figure 13:</strong> Donor Add Food Page</figcaption><img src="finalreport/donor_addfood.jpg" width="200">
 
 ### D. Admin (Moderation) Ecosystem
-<figcaption><strong>Figure 8:</strong> Admin Account Page</figcaption><img src="finalreport/admin_page.jpg" width="200">
-<figcaption><strong>Figure 8:</strong> Admin Dashboard (Manage Users)</figcaption><img src="finalreport/admin_dash1.jpg" width="200">
-<figcaption><strong>Figure 8:</strong> Admin Dashboard (Manage Food)</figcaption><img src="finalreport/admin_dash2.jpg" width="200">
+<figcaption><strong>Figure 14:</strong> Admin Account Page</figcaption><img src="finalreport/admin_page.jpg" width="200">
+<figcaption><strong>Figure 15:</strong> Admin Dashboard (Manage Users)</figcaption><img src="finalreport/admin_dash1.jpg" width="200">
+<figcaption><strong>Figure 16:</strong> Admin Dashboard (Manage Food)</figcaption><img src="finalreport/admin_dash2.jpg" width="200">
 
 ---
 
