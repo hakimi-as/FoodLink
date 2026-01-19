@@ -123,3 +123,56 @@ We will use **Cloud Firestore** (NoSQL) for the database.
 4.  **Material Design Guidelines:** https://material.io/design
 5.  **Olio - Food Sharing Revolution. (n.d.). Retrieved from https://olioapp.com/en/**
 >>>>>>> 2db4742ed5e990403b86fa91f370274fe623b74f
+
+
+# Final Project Report: MySaveFood
+
+## 1. Final UI Screenshots
+### A. Student (Receiver) Ecosystem
+
+### B. Donor (Cafe Owner) Ecosystem
+
+### C. Admin (Moderation) Ecosystem
+
+---
+
+## 2. Summary of Achieved Features
+We successfully implemented 100% of our core proposal modules, plus an additional Admin panel.
+
+* **Role-Based Authentication:** Users are strictly separated into Student, Donor, and Admin roles upon registration. The app prevents "Students" from accessing "Donor" features (as seen in Figure 5).
+* **Real-Time Food Feed:** The Student Home Screen streams data directly from Firestore. When a Donor posts an item, it appears instantly on student devices without refreshing.
+* **Inventory Management:** Donors can track how many items are left. If a student claims an item, the "Quantity" counter decrements automatically.
+* **Shariah Compliance Tools:**
+    * **Halal Check:** Donors *must* tick the "Halal Confirmation" box before posting.
+    * **Admin Moderation:** Admins can view all users and food items, with the power to delete inappropriate content or ban suspicious users immediately.
+* **Profile Statistics:** Each user has a personalized dashboard showing their total "Donated" or "Claimed" counts.
+
+## 3. Technical Explanation
+The application was built using **Flutter** following the **MVVM (Model-View-ViewModel)** architecture to ensure code maintainability and testing.
+
+### Architecture Breakdown
+* **Model:** We defined strict data models (`FoodItem`, `UserModel`) that map directly to our Firebase Cloud Firestore collections.
+* **View (UI):** All screens (Login, Feed, Profile) are built as stateless/stateful widgets that only handle UI rendering. They do not contain business logic.
+* **ViewModel (Provider):** We used the `Provider` package for state management. The ViewModels handle:
+    * Fetching data from Firebase.
+    * Managing loading states (spinners).
+    * Handling user sessions (Auth).
+    * Calculating "Remaining Quantity" logic.
+
+### Firebase Integration
+* **Authentication:** Handles email/password and Google Sign-In.
+* **Firestore:** Used as the NoSQL database. We utilized `.snapshots()` streams for the Food Feed to ensure real-time updates.
+* **Storage:** Used to store and retrieve images of the food items uploaded by donors.
+
+## 4. Limitations and Future Enhancements
+While the core application is fully functional, we have identified areas for future growth:
+
+### Limitations
+1.  **Manual Location Entry:** Currently, donors manually type their location (e.g., "Mahallah Faruq"). There is no GPS map integration to show the exact stall location.
+2.  **No In-App Chat:** Coordination relies on the pickup details provided in the description. Students cannot chat with Donors to ask specific questions.
+3.  **Basic Search:** The search function currently filters only by food name, not by "nearest location" or "category."
+
+### Future Enhancements
+1.  **Map Integration:** Implement Google Maps API to show a "Food Near Me" view, allowing students to visually see available food on the campus map.
+2.  **Smart Notifications:** Use Firebase Cloud Messaging (FCM) to alert students when their favorite food type (e.g., "Nasi Lemak") is posted.
+3.  **AI Food Recognition:** Implement an AI image classifier (TensorFlow Lite) to auto-detect the food type from the photo, saving time for Donors.
