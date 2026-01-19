@@ -124,15 +124,20 @@ We will use **Cloud Firestore** (NoSQL) for the database.
 5.  **Olio - Food Sharing Revolution. (n.d.). Retrieved from https://olioapp.com/en/**
 >>>>>>> 2db4742ed5e990403b86fa91f370274fe623b74f
 
+---
 
 # Final Project Report: MySaveFood
 
 ## 1. Final UI Screenshots
-### A. Student (Receiver) Ecosystem
+### A. Login/Registration Page
+<figcaption><strong>Figure 6:</strong> Registration Page</figcaption><img src="finalreport/register.jpg" alt="Registration_Page_MySaveFood" width="200">
+<figcaption><strong>Figure 7:</strong> Login Page</figcaption><img src="finalreport/login.jpg" alt="Login_Page_MySaveFood" width="200">
 
-### B. Donor (Cafe Owner) Ecosystem
+### B. Student (Receiver) Ecosystem
 
-### C. Admin (Moderation) Ecosystem
+### C. Donor (Cafe Owner) Ecosystem
+
+### D. Admin (Moderation) Ecosystem
 
 ---
 
