@@ -15,7 +15,6 @@ dependencies:
   firebase_core: ^3.6.0
   firebase_auth: ^5.3.1
   cloud_firestore: ^5.4.4
-  firebase_storage: ^12.3.2
   google_sign_in: ^6.2.1
 
   # State management
@@ -24,11 +23,14 @@ dependencies:
   # UI
   google_fonts: ^6.2.1
   cached_network_image: ^3.4.1
+  shimmer: ^3.0.0
+  confetti: ^0.7.0
 
   # Utilities
   image_picker: ^1.1.2
   intl: ^0.19.0
   shared_preferences: ^2.3.2
+  cloudinary_public: ^0.23.0
 
 dev_dependencies:
   flutter_test:
