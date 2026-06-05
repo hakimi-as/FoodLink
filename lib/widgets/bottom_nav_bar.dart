@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../core/theme/app_colors.dart';
+import 'animated_pressable.dart';
 
 class AppBottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -16,37 +17,24 @@ class AppBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.clr;
     return Container(
       height: 80,
-      decoration: const BoxDecoration(
-        color: AppColors.card,
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x0F000000),
-            blurRadius: 20,
-            offset: Offset(0, -4),
-          ),
-        ],
+      decoration: BoxDecoration(
+        color: c.card,
+        border: Border(top: BorderSide(color: c.border, width: 1)),
+        boxShadow: c.isDark
+            ? null
+            : [const BoxShadow(color: Color(0x0F000000), blurRadius: 20, offset: Offset(0, -4))],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _NavItem(
-            icon: Icons.restaurant,
-            label: 'Pick Up',
-            active: currentIndex == 0,
-            onTap: () => onTap(0),
-          ),
-          _CenterFab(
-            onTap: () => onTap(1),
-            active: currentIndex == 1,
-          ),
-          _NavItem(
-            icon: Icons.person,
-            label: 'Profile',
-            active: currentIndex == 2,
-            onTap: () => onTap(2),
-          ),
+          _NavItem(icon: Icons.restaurant, label: 'Pick Up',
+              active: currentIndex == 0, onTap: () => onTap(0), c: c),
+          _CenterFab(onTap: () => onTap(1), active: currentIndex == 1, c: c),
+          _NavItem(icon: Icons.person, label: 'Profile',
+              active: currentIndex == 2, onTap: () => onTap(2), c: c),
         ],
       ),
     );
@@ -58,20 +46,17 @@ class _NavItem extends StatelessWidget {
   final String label;
   final bool active;
   final VoidCallback onTap;
+  final FLColors c;
 
-  const _NavItem({
-    required this.icon,
-    required this.label,
-    required this.active,
-    required this.onTap,
-  });
+  const _NavItem({required this.icon, required this.label,
+      required this.active, required this.onTap, required this.c});
 
   @override
   Widget build(BuildContext context) {
-    final color = active ? AppColors.primary : const Color(0xFF94A3B8);
-    return GestureDetector(
+    final color = active ? AppColors.primary : c.muted;
+    return AnimatedPressable(
       onTap: onTap,
-      behavior: HitTestBehavior.opaque,
+      haptic: HapticFeedbackType.light,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Column(
@@ -79,11 +64,8 @@ class _NavItem extends StatelessWidget {
           children: [
             Icon(icon, size: 22, color: color),
             const SizedBox(height: 4),
-            Text(label,
-                style: GoogleFonts.dmSans(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w600,
-                    color: color)),
+            Text(label, style: GoogleFonts.dmSans(
+                fontSize: 10.5, fontWeight: FontWeight.w600, color: color)),
           ],
         ),
       ),
@@ -94,48 +76,38 @@ class _NavItem extends StatelessWidget {
 class _CenterFab extends StatelessWidget {
   final VoidCallback onTap;
   final bool active;
+  final FLColors c;
 
-  const _CenterFab({required this.onTap, required this.active});
+  const _CenterFab({required this.onTap, required this.active, required this.c});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        GestureDetector(
+        AnimatedPressable(
           onTap: onTap,
+          haptic: HapticFeedbackType.medium,
           child: Container(
-            width: 52,
-            height: 52,
+            width: 52, height: 52,
             margin: const EdgeInsets.only(bottom: 2),
             transform: Matrix4.translationValues(0, -14, 0),
             decoration: BoxDecoration(
               gradient: AppColors.primaryGradient,
               borderRadius: BorderRadius.circular(17),
-              border: Border.all(color: AppColors.card, width: 3),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withOpacity(0.4),
-                  blurRadius: 20,
-                  offset: const Offset(0, 6),
-                ),
-              ],
+              border: Border.all(color: c.card, width: 3),
+              boxShadow: [BoxShadow(
+                color: AppColors.primary.withOpacity(0.4),
+                blurRadius: 20, offset: const Offset(0, 6))],
             ),
             alignment: Alignment.center,
-            child: const Icon(Icons.volunteer_activism,
-                color: Colors.white, size: 22),
+            child: const Icon(Icons.volunteer_activism, color: Colors.white, size: 22),
           ),
         ),
         Transform.translate(
           offset: const Offset(0, -14),
-          child: Text(
-            'Donate',
-            style: GoogleFonts.dmSans(
-              fontSize: 10.5,
-              fontWeight: FontWeight.w600,
-              color: AppColors.primary,
-            ),
-          ),
+          child: Text('Donate', style: GoogleFonts.dmSans(
+              fontSize: 10.5, fontWeight: FontWeight.w600, color: AppColors.primary)),
         ),
       ],
     );

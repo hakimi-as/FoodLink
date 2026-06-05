@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/routes/app_route.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/custom_text_field.dart';
 import 'register_screen.dart';
@@ -77,8 +78,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.clr;
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -115,12 +117,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           style: GoogleFonts.sora(
                               fontSize: 28,
                               fontWeight: FontWeight.w800,
-                              color: AppColors.dark,
+                              color: c.text,
                               letterSpacing: -0.5)),
                       const SizedBox(height: 4),
                       Text('Connecting Surplus. Feeding Communities.',
                           style: GoogleFonts.dmSans(
-                              fontSize: 12.5, color: AppColors.muted),
+                              fontSize: 12.5, color: c.muted),
                           textAlign: TextAlign.center),
                     ],
                   ),
@@ -183,11 +185,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: GoogleFonts.sora(
                         fontSize: 22,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.dark)),
+                        color: c.text)),
                 const SizedBox(height: 4),
                 Text('Sign in to continue your impact',
                     style: GoogleFonts.dmSans(
-                        fontSize: 13.5, color: AppColors.muted)),
+                        fontSize: 13.5, color: c.muted)),
                 const SizedBox(height: 24),
                 // ── Email
                 CustomTextField(
@@ -236,18 +238,16 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 20),
                 // ── Divider
                 Row(children: [
-                  const Expanded(
-                      child: Divider(color: AppColors.border, thickness: 1)),
+                  Expanded(child: Divider(color: c.border, thickness: 1)),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     child: Text('or continue with',
                         style: GoogleFonts.dmSans(
                             fontSize: 11.5,
-                            color: const Color(0xFF94A3B8),
+                            color: c.muted,
                             fontWeight: FontWeight.w500)),
                   ),
-                  const Expanded(
-                      child: Divider(color: AppColors.border, thickness: 1)),
+                  Expanded(child: Divider(color: c.border, thickness: 1)),
                 ]),
                 const SizedBox(height: 20),
                 // ── Google
@@ -258,16 +258,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: RichText(
                     text: TextSpan(
                       style: GoogleFonts.dmSans(
-                          fontSize: 13.5, color: AppColors.muted),
+                          fontSize: 13.5, color: c.muted),
                       children: [
                         const TextSpan(text: "Don't have an account? "),
                         WidgetSpan(
                           child: GestureDetector(
                             onTap: () => Navigator.push(
                                 context,
-                                MaterialPageRoute(
-                                    builder: (_) =>
-                                        const RegisterScreen())),
+                                AppRoute(builder: (_) => const RegisterScreen())),
                             child: Text('Create one free',
                                 style: GoogleFonts.dmSans(
                                     fontSize: 13.5,
@@ -304,6 +302,7 @@ class _GradientButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.clr;
     return GestureDetector(
       onTap: loading ? null : onTap,
       child: Container(
@@ -350,14 +349,15 @@ class _GoogleButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.clr;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         height: 52,
         decoration: BoxDecoration(
-          color: AppColors.card,
+          color: c.card,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border, width: 1.5),
+          border: Border.all(color: c.border, width: 1.5),
         ),
         alignment: Alignment.center,
         child: Row(
@@ -374,7 +374,7 @@ class _GoogleButton extends StatelessWidget {
                 style: GoogleFonts.dmSans(
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
-                    color: AppColors.bodyText)),
+                    color: c.bodyText)),
           ],
         ),
       ),

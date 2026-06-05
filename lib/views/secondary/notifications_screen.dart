@@ -1,88 +1,165 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/claim_provider.dart';
+import '../../providers/food_provider.dart';
+import '../../widgets/app_empty_state.dart';
 
-class NotificationsScreen extends StatefulWidget {
+class NotificationsScreen extends StatelessWidget {
   const NotificationsScreen({super.key});
 
   @override
-  State<NotificationsScreen> createState() => _NotificationsScreenState();
+  Widget build(BuildContext context) {
+    final c = context.clr;
+    final auth = context.watch<AuthProvider>();
+    final claim = context.watch<ClaimProvider>();
+    final food = context.watch<FoodProvider>();
+    final user = auth.user;
+
+    if (user == null) return const SizedBox.shrink();
+
+    // Build notification items from real Firestore data
+    final List<_NotifItem> items = [];
+
+    if (user.isDonor) {
+      // Donors see: who claimed their food
+      for (final c in claim.donorClaims) {
+        items.add(_NotifItem(
+          type: _NType.claim,
+          title: 'Food Claimed!',
+          body:
+              '${c.studentName} reserved ${c.quantity} portion(s) of ${c.itemTitle}. Prepare for pickup.',
+          time: _formatTime(c.timestamp),
+          isUnread: c.isPending,
+        ));
+      }
+      // Donors see: expiry reminders for items expiring within 2h
+      for (final item in food.donorItems) {
+        final diff = item.expiryTime.difference(DateTime.now());
+        if (diff.inHours <= 2 && diff.isNegative == false && item.quantity > 0) {
+          items.add(_NotifItem(
+            type: _NType.remind,
+            title: 'Expiry Reminder ⏰',
+            body:
+                'Your listing "${item.title}" expires in ${diff.inHours > 0 ? '${diff.inHours}h' : '${diff.inMinutes}m'}. Still has ${item.quantity} portion(s).',
+            time: 'Expiring soon',
+            isUnread: true,
+          ));
+        }
+      }
+    } else if (user.isStudent) {
+      // Students see: their own claim history
+      for (final c in claim.myClaims) {
+        items.add(_NotifItem(
+          type: c.isCompleted ? _NType.verify : _NType.claim,
+          title: c.isCompleted ? 'Pickup Verified ✓' : 'Claim Successful 🎉',
+          body: c.isCompleted
+              ? 'Your pickup of ${c.quantity} portion(s) of "${c.itemTitle}" was verified.'
+              : 'You claimed ${c.quantity} portion(s) of "${c.itemTitle}" from ${c.donorName}. Please pick up!',
+          time: _formatTime(c.timestamp),
+          isUnread: c.isPending,
+        ));
+      }
+      // Students see: new food posted recently (last 24h)
+      final cutoff = DateTime.now().subtract(const Duration(hours: 24));
+      for (final item in food.feed.where((i) => i.createdAt.isAfter(cutoff))) {
+        items.add(_NotifItem(
+          type: _NType.newFood,
+          title: 'New Food Near You 🍛',
+          body:
+              '${item.donorName} just posted ${item.quantity} portion(s) of "${item.title}" at ${item.pickupLocation}.',
+          time: item.postedAgo,
+          isUnread: false,
+        ));
+      }
+    } else if (user.isAdmin) {
+      // Admins see: all recent claims
+      for (final c in claim.allClaims.take(20)) {
+        items.add(_NotifItem(
+          type: _NType.claim,
+          title: 'New Claim',
+          body:
+              '${c.studentName} claimed ${c.quantity} portion(s) of "${c.itemTitle}".',
+          time: _formatTime(c.timestamp),
+          isUnread: c.isPending,
+        ));
+      }
+    }
+
+    // Sort: unread first, then by recency (already sorted by timestamp from provider)
+    items.sort((a, b) {
+      if (a.isUnread && !b.isUnread) return -1;
+      if (!a.isUnread && b.isUnread) return 1;
+      return 0;
+    });
+
+    return _NotificationsView(items: items);
+  }
 }
 
-class _NotificationsScreenState extends State<NotificationsScreen> {
-  final List<_Notif> _notifs = [
-    _Notif(
-      type: _NType.claim,
-      title: 'Food Claimed!',
-      body: 'Ahmad Razif has reserved 3 portions of Nasi Lemak Ayam Berempah. Please prepare for pickup.',
-      time: '2 minutes ago',
-      unread: true,
-    ),
-    _Notif(
-      type: _NType.remind,
-      title: 'Expiry Reminder ⏰',
-      body: 'Your listing Mixed Rice Lauk Pauk expires in 1 hour. It still has 2 portions remaining.',
-      time: '28 minutes ago',
-      unread: true,
-    ),
-    _Notif(
-      type: _NType.verify,
-      title: 'Pickup Verified ✓',
-      body: 'Siti Nurhaliza confirmed pickup of 5 portions of Mixed Rice Lauk Pauk. Great work!',
-      time: '1 hour ago',
-      unread: true,
-    ),
-    _Notif(
-      type: _NType.newFood,
-      title: 'New Food Near You 🍛',
-      body: 'Hotel Pullman KL just posted 20 portions of Mixed Rice 0.8km away. Claim it before it\'s gone!',
-      time: '3 hours ago',
-      unread: false,
-    ),
-    _Notif(
-      type: _NType.claim,
-      title: 'Claim Successful 🎉',
-      body: 'You successfully claimed Artisan Bread & Pastries from AEON Bakehouse. Don\'t forget to pick up!',
-      time: 'Yesterday, 4:15 PM',
-      unread: false,
-    ),
-    _Notif(
-      type: _NType.newFood,
-      title: 'Top Donor This Week 🏆',
-      body: 'Congratulations! You\'re ranked #1 Donor this week with 24 meals redistributed. Keep it up!',
-      time: 'Yesterday, 12:00 PM',
-      unread: false,
-    ),
-    _Notif(
-      type: _NType.remind,
-      title: 'Weekly Impact Report',
-      body: 'This week you helped save 18.4kg of food from waste and contributed to 54 meals. View full report.',
-      time: 'Yesterday, 9:00 AM',
-      unread: false,
-    ),
-  ];
+String _formatTime(DateTime dt) {
+  final diff = DateTime.now().difference(dt);
+  if (diff.inMinutes < 1) return 'Just now';
+  if (diff.inMinutes < 60) return '${diff.inMinutes} minutes ago';
+  if (diff.inHours < 24) return '${diff.inHours} hour(s) ago';
+  return '${diff.inDays} day(s) ago';
+}
+
+// ── Data model ───────────────────────────────────────────────────────────────
+enum _NType { claim, remind, newFood, verify }
+
+class _NotifItem {
+  final _NType type;
+  final String title, body, time;
+  bool isUnread;
+  _NotifItem({
+    required this.type,
+    required this.title,
+    required this.body,
+    required this.time,
+    required this.isUnread,
+  });
+}
+
+// ── View ─────────────────────────────────────────────────────────────────────
+class _NotificationsView extends StatefulWidget {
+  final List<_NotifItem> items;
+  const _NotificationsView({required this.items});
+
+  @override
+  State<_NotificationsView> createState() => _NotificationsViewState();
+}
+
+class _NotificationsViewState extends State<_NotificationsView> {
+  late List<_NotifItem> _items;
+
+  @override
+  void initState() {
+    super.initState();
+    _items = List.from(widget.items);
+  }
 
   void _markAll() => setState(() {
-        for (final n in _notifs) {
-          n.unread = false;
+        for (final n in _items) {
+          n.isUnread = false;
         }
       });
 
   @override
   Widget build(BuildContext context) {
-    final todayItems = _notifs.where((n) => !n.time.startsWith('Yesterday')).toList();
-    final yesterdayItems = _notifs.where((n) => n.time.startsWith('Yesterday')).toList();
-
+    final c = context.clr;
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
             // App bar
             Container(
-              color: AppColors.card,
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 22, vertical: 16),
+              color: Theme.of(context).cardColor,
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
               child: Row(
                 children: [
                   GestureDetector(
@@ -91,11 +168,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       width: 38,
                       height: 38,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
+                        color: c.elevated,
                         borderRadius: BorderRadius.circular(11),
                       ),
-                      child: const Icon(Icons.arrow_back,
-                          size: 16, color: AppColors.bodyText),
+                      child: Icon(Icons.arrow_back,
+                          size: 16, color: c.bodyText),
                     ),
                   ),
                   const SizedBox(width: 14),
@@ -104,7 +181,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         style: GoogleFonts.sora(
                             fontSize: 17,
                             fontWeight: FontWeight.w700,
-                            color: AppColors.dark)),
+                            color: c.text)),
                   ),
                   TextButton(
                     onPressed: _markAll,
@@ -117,23 +194,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 ],
               ),
             ),
-            const Divider(height: 1, color: AppColors.border),
+            Divider(height: 1, color: c.border),
             Expanded(
-              child: ListView(
-                children: [
-                  _dateLabel('Today'),
-                  ...todayItems.map((n) => _NotifTile(
-                      notif: n,
-                      onTap: () =>
-                          setState(() => n.unread = false))),
-                  _dateLabel('Yesterday'),
-                  ...yesterdayItems.map((n) => _NotifTile(
-                      notif: n,
-                      onTap: () =>
-                          setState(() => n.unread = false))),
-                  const SizedBox(height: 24),
-                ],
-              ),
+              child: _items.isEmpty
+                  ? _emptyState()
+                  : ListView.builder(
+                      itemCount: _items.length,
+                      itemBuilder: (_, i) => _NotifTile(
+                        notif: _items[i],
+                        onTap: () =>
+                            setState(() => _items[i].isUnread = false),
+                      ),
+                    ),
             ),
           ],
         ),
@@ -141,49 +213,30 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
-  Widget _dateLabel(String label) => Padding(
-        padding: const EdgeInsets.fromLTRB(22, 18, 22, 10),
-        child: Text(
-          label.toUpperCase(),
-          style: GoogleFonts.dmSans(
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            color: AppColors.muted,
-            letterSpacing: 0.7,
-          ),
+  Widget _emptyState() => const Center(
+        child: AppEmptyState(
+          emoji: '🔔',
+          title: 'All caught up',
+          subtitle: 'Activity will appear here.',
         ),
       );
 }
 
-enum _NType { claim, remind, newFood, verify }
-
-class _Notif {
-  final _NType type;
-  final String title, body, time;
-  bool unread;
-  _Notif(
-      {required this.type,
-      required this.title,
-      required this.body,
-      required this.time,
-      required this.unread});
-}
-
 class _NotifTile extends StatelessWidget {
-  final _Notif notif;
+  final _NotifItem notif;
   final VoidCallback onTap;
   const _NotifTile({required this.notif, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    final config = _iconConfig(notif.type);
-
+    final c = context.clr;
+    final cfg = _iconConfig(notif.type);
     return Column(
       children: [
         GestureDetector(
           onTap: onTap,
           child: Container(
-            color: notif.unread
+            color: notif.isUnread
                 ? AppColors.primary.withOpacity(0.04)
                 : Colors.transparent,
             padding:
@@ -195,12 +248,10 @@ class _NotifTile extends StatelessWidget {
                   width: 46,
                   height: 46,
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                        colors: config.colors),
+                    gradient: LinearGradient(colors: cfg.colors),
                     borderRadius: BorderRadius.circular(15),
                   ),
-                  child: Icon(config.icon,
-                      color: config.iconColor, size: 20),
+                  child: Icon(cfg.icon, color: cfg.iconColor, size: 20),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -211,77 +262,69 @@ class _NotifTile extends StatelessWidget {
                           style: GoogleFonts.dmSans(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
-                              color: AppColors.dark,
+                              color: c.text,
                               height: 1.3)),
                       const SizedBox(height: 3),
                       Text(notif.body,
                           style: GoogleFonts.dmSans(
                               fontSize: 12.5,
-                              color: AppColors.muted,
+                              color: c.muted,
                               height: 1.5)),
                       const SizedBox(height: 4),
                       Text(notif.time,
                           style: GoogleFonts.dmSans(
                               fontSize: 11,
-                              color: const Color(0xFF94A3B8))),
+                              color: c.muted)),
                     ],
                   ),
                 ),
-                if (notif.unread)
+                if (notif.isUnread)
                   Container(
                     width: 8,
                     height: 8,
                     margin: const EdgeInsets.only(top: 4),
-                    decoration: const BoxDecoration(
-                        color: AppColors.primary,
-                        shape: BoxShape.circle),
+                    decoration: BoxDecoration(
+                        color: AppColors.primary, shape: BoxShape.circle),
                   ),
               ],
             ),
           ),
         ),
-        const Divider(
-            height: 1, color: AppColors.border, indent: 22, endIndent: 22),
+        Divider(height: 1, color: c.border, indent: 22, endIndent: 22),
       ],
     );
   }
 
-  _IconConfig _iconConfig(_NType t) {
+  _IconCfg _iconConfig(_NType t) {
     switch (t) {
       case _NType.claim:
-        return _IconConfig(
-          colors: [const Color(0xFFDCFCE7), AppColors.green],
-          icon: Icons.check_circle,
-          iconColor: AppColors.greenDark,
-        );
+        return _IconCfg(
+            colors: [const Color(0xFFDCFCE7), AppColors.green],
+            icon: Icons.check_circle,
+            iconColor: AppColors.greenDark);
       case _NType.remind:
-        return _IconConfig(
-          colors: [AppColors.primaryLight, AppColors.primary],
-          icon: Icons.access_time,
-          iconColor: AppColors.primary,
-        );
+        return _IconCfg(
+            colors: [AppColors.primaryLight, AppColors.primary],
+            icon: Icons.access_time,
+            iconColor: AppColors.primary);
       case _NType.newFood:
-        return _IconConfig(
-          colors: [const Color(0xFFEFF6FF), const Color(0xFF3B82F6)],
-          icon: Icons.restaurant,
-          iconColor: const Color(0xFF2563EB),
-        );
+        return _IconCfg(
+            colors: [const Color(0xFFEFF6FF), const Color(0xFF3B82F6)],
+            icon: Icons.restaurant,
+            iconColor: const Color(0xFF2563EB));
       case _NType.verify:
-        return _IconConfig(
-          colors: [const Color(0xFFF5F3FF), const Color(0xFF8B5CF6)],
-          icon: Icons.assignment_turned_in,
-          iconColor: const Color(0xFF7C3AED),
-        );
+        return _IconCfg(
+            colors: [const Color(0xFFF5F3FF), const Color(0xFF8B5CF6)],
+            icon: Icons.assignment_turned_in,
+            iconColor: const Color(0xFF7C3AED));
     }
   }
 }
 
-class _IconConfig {
+class _IconCfg {
   final List<Color> colors;
   final IconData icon;
   final Color iconColor;
-  const _IconConfig(
-      {required this.colors,
-      required this.icon,
-      required this.iconColor});
+  const _IconCfg(
+      {required this.colors, required this.icon, required this.iconColor});
 }

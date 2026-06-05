@@ -154,6 +154,7 @@ class _ClaimModalState extends State<ClaimModal> {
           ]),
         ],
       ),
+      ),
         ConfettiWidget(
           confettiController: _confetti,
           blastDirectionality: BlastDirectionality.explosive,
