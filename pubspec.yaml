@@ -1,5 +1,5 @@
 name: mysavefood
-description: "A new Flutter project."
+description: "FoodLink — Connecting Surplus. Feeding Communities."
 publish_to: 'none'
 
 version: 1.0.0+1
@@ -11,39 +11,38 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # Firebase Core
+  # Firebase
   firebase_core: ^3.6.0
   firebase_auth: ^5.3.1
   cloud_firestore: ^5.4.4
+  firebase_storage: ^12.3.2
+  google_sign_in: ^6.2.1
 
-  # State Management
+  # State management
   provider: ^6.1.2
 
-  # Image & Storage
-  image_picker: ^1.1.2
-  cloudinary_public: ^0.23.0
-
-  # UI Utilities
+  # UI
   google_fonts: ^6.2.1
+  cached_network_image: ^3.4.1
+
+  # Utilities
+  image_picker: ^1.1.2
   intl: ^0.19.0
-  google_sign_in: ^6.2.1
+  shared_preferences: ^2.3.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
-  # 1. ADDED THIS PACKAGE
   flutter_launcher_icons: ^0.13.1
 
 flutter:
   uses-material-design: true
-
   assets:
     - assets/
 
-# 2. ADDED CONFIGURATION HERE
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/logo2.png" # <--- IMPORTANT: Read step 2 below
+  image_path: "assets/logo2.png"
   min_sdk_android: 21

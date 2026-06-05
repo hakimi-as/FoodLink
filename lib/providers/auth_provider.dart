@@ -1,84 +1,110 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
 
 class AuthProvider extends ChangeNotifier {
-  final AuthService _authService = AuthService();
+  final AuthService _service = AuthService();
+
   UserModel? _user;
-  bool _isLoading = false;
+  bool _loading = false;
+  String? _error;
 
-  UserModel? get currentUserModel => _user;
-  bool get isLoading => _isLoading;
+  UserModel? get user => _user;
+  bool get loading => _loading;
+  String? get error => _error;
+  bool get isLoggedIn => _user != null;
 
-  void _setLoading(bool value) {
-    _isLoading = value;
-    notifyListeners();
-  }
-  
-  // --- NEW: Manually set user (For Role Selection Screen) ---
-  void setCurrentUser(UserModel user) {
-    _user = user;
+  void _setLoading(bool v) {
+    _loading = v;
     notifyListeners();
   }
 
-  // --- LOGIN ---
-  Future<String?> login(String email, String password) async {
-    _setLoading(true);
-    try {
-      User? firebaseUser = await _authService.login(email, password);
-
-      if (firebaseUser != null) {
-        _user = await _authService.getUserDetails(firebaseUser.uid);
-      }
-
-      _setLoading(false);
-      return null;
-    } catch (e) {
-      _setLoading(false);
-      return e.toString();
-    }
+  void _setError(String? v) {
+    _error = v;
+    notifyListeners();
   }
 
-  // --- REGISTER ---
-  Future<String?> register(String email, String password, String name,
-      String role, String phone) async {
-    _setLoading(true);
-    try {
-      _user = await _authService.register(
-        email: email,
-        password: password,
-        name: name,
-        role: role,
-        phone: phone,
-      );
-      _setLoading(false);
-      return null;
-    } catch (e) {
-      _setLoading(false);
-      return e.toString();
-    }
-  }
+  void clearError() => _setError(null);
 
-  // --- UPDATE USER ---
-  Future<String?> updateUser(UserModel updatedUser) async {
+  Future<bool> signIn(String email, String password) async {
     _setLoading(true);
+    _setError(null);
     try {
-      await _authService.updateUser(updatedUser);
-      _user = updatedUser;
-      _setLoading(false);
+      _user = await _service.signInWithEmail(email, password);
       notifyListeners();
-      return null;
+      return true;
     } catch (e) {
+      _setError(_friendlyError(e));
+      return false;
+    } finally {
       _setLoading(false);
-      return e.toString();
     }
   }
 
-  // --- LOGOUT ---
-  Future<void> logout() async {
-    await _authService.signOut();
+  Future<bool> register({
+    required String name,
+    required String email,
+    required String phone,
+    required String password,
+    required String role,
+  }) async {
+    _setLoading(true);
+    _setError(null);
+    try {
+      _user = await _service.registerWithEmail(
+        name: name,
+        email: email,
+        phone: phone,
+        password: password,
+        role: role,
+      );
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _setError(_friendlyError(e));
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<bool> signInWithGoogle() async {
+    _setLoading(true);
+    _setError(null);
+    try {
+      _user = await _service.signInWithGoogle();
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _setError(_friendlyError(e));
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> signOut() async {
+    await _service.signOut();
     _user = null;
     notifyListeners();
+  }
+
+  Future<void> sendPasswordReset(String email) =>
+      _service.sendPasswordResetEmail(email);
+
+  void updateUser(UserModel updated) {
+    _user = updated;
+    notifyListeners();
+  }
+
+  String _friendlyError(Object e) {
+    final msg = e.toString();
+    if (msg.contains('user-not-found')) return 'No account found with this email.';
+    if (msg.contains('wrong-password')) return 'Incorrect password.';
+    if (msg.contains('email-already-in-use')) return 'This email is already registered.';
+    if (msg.contains('weak-password')) return 'Password is too weak (min 6 chars).';
+    if (msg.contains('invalid-email')) return 'Please enter a valid email address.';
+    if (msg.contains('cancelled')) return 'Sign-in was cancelled.';
+    return 'Something went wrong. Please try again.';
   }
 }

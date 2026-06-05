@@ -1,45 +1,63 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../core/constants/app_constants.dart';
+
 class UserModel {
   final String uid;
-  final String email;
   final String name;
+  final String email;
+  final String phone;
   final String role;
-  // NEW FIELDS
-  final String? phone;
-  final String? bio;
   final String? photoUrl;
+  final DateTime createdAt;
 
-  UserModel({
+  const UserModel({
     required this.uid,
-    required this.email,
     required this.name,
+    required this.email,
+    required this.phone,
     required this.role,
-    this.phone,
-    this.bio,
     this.photoUrl,
+    required this.createdAt,
   });
 
-  // Convert from Firestore Document
-  factory UserModel.fromMap(Map<String, dynamic> map, String id) {
-    return UserModel(
-      uid: id,
-      email: map['email'] ?? '',
-      name: map['name'] ?? '',
-      role: map['role'] ?? 'student',
-      phone: map['phone'],       // Read new field
-      bio: map['bio'],           // Read new field
-      photoUrl: map['photoUrl'], // Read new field
-    );
-  }
+  bool get isDonor => role == AppConstants.roleDonor;
+  bool get isStudent => role == AppConstants.roleStudent;
+  bool get isAdmin => role == AppConstants.roleAdmin;
 
-  // Convert to Map for saving to Firestore
-  Map<String, dynamic> toMap() {
-    return {
-      'email': email,
-      'name': name,
-      'role': role,
-      'phone': phone,
-      'bio': bio,
-      'photoUrl': photoUrl,
-    };
-  }
+  factory UserModel.fromMap(Map<String, dynamic> map) => UserModel(
+        uid: map['uid'] as String,
+        name: map['name'] as String,
+        email: map['email'] as String,
+        phone: (map['phone'] as String?) ?? '',
+        role: map['role'] as String,
+        photoUrl: map['photoUrl'] as String?,
+        createdAt: map['createdAt'] is Timestamp
+            ? (map['createdAt'] as Timestamp).toDate()
+            : DateTime.now(),
+      );
+
+  Map<String, dynamic> toMap() => {
+        'uid': uid,
+        'name': name,
+        'email': email,
+        'phone': phone,
+        'role': role,
+        'photoUrl': photoUrl,
+        'createdAt': Timestamp.fromDate(createdAt),
+      };
+
+  UserModel copyWith({
+    String? name,
+    String? phone,
+    String? photoUrl,
+  }) =>
+      UserModel(
+        uid: uid,
+        name: name ?? this.name,
+        email: email,
+        phone: phone ?? this.phone,
+        role: role,
+        photoUrl: photoUrl ?? this.photoUrl,
+        createdAt: createdAt,
+      );
 }
