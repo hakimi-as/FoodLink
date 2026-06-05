@@ -1,5 +1,6 @@
-import 'dart:io';
+import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:image_picker/image_picker.dart';
 import '../models/food_item_model.dart';
 import '../services/food_service.dart';
 import '../services/storage_service.dart';
@@ -16,6 +17,11 @@ class FoodProvider extends ChangeNotifier {
   String? _error;
   String _searchQuery = '';
   String _activeChip = 'All';
+
+  StreamSubscription<List<FoodItemModel>>? _feedSub;
+  StreamSubscription<List<FoodItemModel>>? _donorSub;
+  StreamSubscription<List<FoodItemModel>>? _allSub;
+  String? _currentDonorId;
 
   List<FoodItemModel> get feed => _filteredFeed;
   List<FoodItemModel> get donorItems => _donorItems;
@@ -58,12 +64,20 @@ class FoodProvider extends ChangeNotifier {
   }
 
   void listenFeed() {
-    _foodService.getAvailableFoods().listen(
+    _feedSub?.cancel();
+    _loading = true;
+    notifyListeners();
+    _feedSub = _foodService.getAvailableFoods().listen(
       (items) {
+        items.sort((a, b) => b.createdAt.compareTo(a.createdAt));
         _feed = items;
+        _loading = false;
+        _error = null;
         notifyListeners();
       },
       onError: (e) {
+        debugPrint('[FoodProvider] listenFeed error: $e');
+        _loading = false;
         _error = e.toString();
         notifyListeners();
       },
@@ -71,21 +85,70 @@ class FoodProvider extends ChangeNotifier {
   }
 
   void listenDonorItems(String donorId) {
-    _foodService.getDonorFoods(donorId).listen(
+    _currentDonorId = donorId;
+    _donorSub?.cancel();
+    _donorSub = _foodService.getDonorFoods(donorId).listen(
       (items) {
+        items.sort((a, b) => b.createdAt.compareTo(a.createdAt));
         _donorItems = items;
         notifyListeners();
       },
+      onError: (e) => debugPrint('[FoodProvider] listenDonorItems error: $e'),
     );
   }
 
   void listenAllItems() {
-    _foodService.getAllFoods().listen(
+    _allSub?.cancel();
+    _allSub = _foodService.getAllFoods().listen(
       (items) {
+        items.sort((a, b) => b.createdAt.compareTo(a.createdAt));
         _allItems = items;
         notifyListeners();
       },
+      onError: (e) => debugPrint('[FoodProvider] listenAllItems error: $e'),
     );
+  }
+
+  Future<void> refresh() async {
+    final completer = Completer<void>();
+    _feedSub?.cancel();
+    _loading = true;
+    notifyListeners();
+    _feedSub = _foodService.getAvailableFoods().listen(
+      (items) {
+        items.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        _feed = items;
+        _loading = false;
+        _error = null;
+        notifyListeners();
+        if (!completer.isCompleted) completer.complete();
+      },
+      onError: (e) {
+        _loading = false;
+        _error = e.toString();
+        notifyListeners();
+        if (!completer.isCompleted) completer.complete();
+      },
+    );
+    await completer.future;
+  }
+
+  Future<void> refreshDonorItems() async {
+    if (_currentDonorId == null) return;
+    final completer = Completer<void>();
+    _donorSub?.cancel();
+    _donorSub = _foodService.getDonorFoods(_currentDonorId!).listen(
+      (items) {
+        items.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        _donorItems = items;
+        notifyListeners();
+        if (!completer.isCompleted) completer.complete();
+      },
+      onError: (e) {
+        if (!completer.isCompleted) completer.complete();
+      },
+    );
+    await completer.future;
   }
 
   Future<bool> postFood({
@@ -97,7 +160,7 @@ class FoodProvider extends ChangeNotifier {
     required int quantity,
     required DateTime expiryTime,
     required bool isHalal,
-    File? imageFile,
+    XFile? imageFile,
   }) async {
     _loading = true;
     _error = null;
@@ -106,8 +169,7 @@ class FoodProvider extends ChangeNotifier {
       final tempId = DateTime.now().millisecondsSinceEpoch.toString();
       String imageUrl = '';
       if (imageFile != null) {
-        imageUrl =
-            await _storageService.uploadFoodImage(imageFile, tempId);
+        imageUrl = await _storageService.uploadFoodImage(imageFile, tempId);
       }
       final item = FoodItemModel(
         itemId: '',
@@ -140,4 +202,12 @@ class FoodProvider extends ChangeNotifier {
 
   Future<void> updateQuantity(String itemId, int qty) =>
       _foodService.updateQuantity(itemId, qty);
+
+  @override
+  void dispose() {
+    _feedSub?.cancel();
+    _donorSub?.cancel();
+    _allSub?.cancel();
+    super.dispose();
+  }
 }
