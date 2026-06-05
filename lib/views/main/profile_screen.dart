@@ -1,19 +1,62 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/routes/app_route.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/food_provider.dart';
 import '../../providers/claim_provider.dart';
 import '../../providers/theme_provider.dart';
+import '../../services/storage_service.dart';
 import '../secondary/history_screen.dart';
+import '../secondary/user_details_screen.dart';
 import '../admin/admin_dashboard_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
   @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  FLColors get c => context.clr;
+
+  bool _uploadingPhoto = false;
+
+  Future<void> _changePhoto() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+    if (picked == null || !mounted) return;
+    setState(() => _uploadingPhoto = true);
+    try {
+      final auth = context.read<AuthProvider>();
+      if (auth.user == null) return;
+      final url = await StorageService().uploadProfilePhoto(picked, auth.user!.uid);
+      await auth.updatePhoto(url);
+      HapticFeedback.mediumImpact();
+    } catch (e) {
+      debugPrint('[ProfileScreen] photo upload error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(e.toString().contains('unauthorized') || e.toString().contains('permission')
+              ? 'Storage permission denied — update Firebase Storage rules.'
+              : 'Failed to upload photo: ${e.toString().split(']').last.trim()}'),
+          backgroundColor: AppColors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ));
+      }
+    } finally {
+      if (mounted) setState(() => _uploadingPhoto = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final c = context.clr;
     final auth = context.watch<AuthProvider>();
     final food = context.watch<FoodProvider>();
     final claim = context.watch<ClaimProvider>();
@@ -25,7 +68,7 @@ class ProfileScreen extends StatelessWidget {
     final claimed = claim.myClaims.length;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
@@ -34,7 +77,7 @@ class ProfileScreen extends StatelessWidget {
               children: [
                 // Dark header
                 Container(
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                       gradient: AppColors.headerGradient),
                   padding: const EdgeInsets.fromLTRB(22, 50, 22, 72),
                   child: Column(
@@ -81,35 +124,53 @@ class ProfileScreen extends StatelessWidget {
                             child: Container(
                               width: 80,
                               height: 80,
-                              decoration: const BoxDecoration(
-                                  color: Color(0xFF1E293B),
-                                  shape: BoxShape.circle),
+                              decoration: BoxDecoration(
+                                  color: const Color(0xFF1E293B),
+                                  shape: BoxShape.circle,
+                                  image: user.photoUrl != null
+                                      ? DecorationImage(
+                                          image: NetworkImage(user.photoUrl!),
+                                          fit: BoxFit.cover)
+                                      : null),
                               alignment: Alignment.center,
-                              child: Text(
-                                user.name.isNotEmpty
-                                    ? user.name[0].toUpperCase()
-                                    : '👤',
-                                style: GoogleFonts.sora(
-                                    fontSize: 30,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.white),
-                              ),
+                              child: user.photoUrl == null
+                                  ? Text(
+                                      user.name.isNotEmpty
+                                          ? user.name[0].toUpperCase()
+                                          : '👤',
+                                      style: GoogleFonts.sora(
+                                          fontSize: 30,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.white),
+                                    )
+                                  : null,
                             ),
                           ),
                           Positioned(
                             bottom: 0,
                             right: 0,
-                            child: Container(
-                              width: 26,
-                              height: 26,
-                              decoration: BoxDecoration(
-                                color: AppColors.primary,
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                    color: AppColors.dark, width: 2),
+                            child: GestureDetector(
+                              onTap: _uploadingPhoto ? null : _changePhoto,
+                              child: Container(
+                                width: 26,
+                                height: 26,
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                      color: AppColors.dark, width: 2),
+                                ),
+                                alignment: Alignment.center,
+                                child: _uploadingPhoto
+                                    ? const SizedBox(
+                                        width: 12,
+                                        height: 12,
+                                        child: CircularProgressIndicator(
+                                            strokeWidth: 1.5,
+                                            color: Colors.white))
+                                    : const Icon(Icons.camera_alt,
+                                        color: Colors.white, size: 12),
                               ),
-                              child: const Icon(Icons.camera_alt,
-                                  color: Colors.white, size: 12),
                             ),
                           ),
                         ],
@@ -161,7 +222,7 @@ class ProfileScreen extends StatelessWidget {
                   right: 20,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: AppColors.card,
+                      color: c.card,
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
@@ -180,7 +241,7 @@ class ProfileScreen extends StatelessWidget {
                               label: 'Donated',
                               valueColor: AppColors.primary),
                         ),
-                        Container(width: 1, height: 60, color: AppColors.border),
+                        Container(width: 1, height: 60, color: c.border),
                         Expanded(
                           child: _StatItem(
                               icon: '🤲',
@@ -188,7 +249,7 @@ class ProfileScreen extends StatelessWidget {
                               label: 'Claimed',
                               valueColor: AppColors.greenDark),
                         ),
-                        Container(width: 1, height: 60, color: AppColors.border),
+                        Container(width: 1, height: 60, color: c.border),
                         Expanded(
                           child: _StatItem(
                               icon: '🌿',
@@ -257,7 +318,9 @@ class ProfileScreen extends StatelessWidget {
                     iconColor: const Color(0xFF3B82F6),
                     title: 'User Details',
                     subtitle: 'Name, email, phone number',
-                    onTap: () {},
+                    onTap: () => Navigator.push(
+                        context,
+                        AppRoute(builder: (_) => const UserDetailsScreen())),
                   ),
                   _MenuItem(
                     icon: Icons.history,
@@ -265,11 +328,9 @@ class ProfileScreen extends StatelessWidget {
                     iconColor: AppColors.green,
                     title: 'History',
                     subtitle: 'My claims & donations',
-                    badge: '${claimed + donated}',
                     onTap: () => Navigator.push(
                         context,
-                        MaterialPageRoute(
-                            builder: (_) => const HistoryScreen())),
+                        AppRoute(builder: (_) => const HistoryScreen())),
                   ),
                   // Notification toggle
                   _ToggleItem(
@@ -285,11 +346,14 @@ class ProfileScreen extends StatelessWidget {
                   _ToggleItem(
                     icon: Icons.dark_mode_outlined,
                     iconBg: const Color(0xFFF8FAFC),
-                    iconColor: AppColors.muted,
+                    iconColor: c.muted,
                     title: 'Dark Mode',
                     subtitle: 'Toggle app appearance',
                     value: theme.isDark,
-                    onChanged: (_) => context.read<ThemeProvider>().toggleTheme(),
+                    onChanged: (_) {
+                      HapticFeedback.selectionClick();
+                      context.read<ThemeProvider>().toggleTheme();
+                    },
                   ),
                   _MenuItem(
                     icon: Icons.info_outline,
@@ -306,9 +370,7 @@ class ProfileScreen extends StatelessWidget {
                     GestureDetector(
                       onTap: () => Navigator.push(
                           context,
-                          MaterialPageRoute(
-                              builder: (_) =>
-                                  const AdminDashboardScreen())),
+                          AppRoute(builder: (_) => const AdminDashboardScreen())),
                       child: Container(
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
@@ -411,7 +473,7 @@ class ProfileScreen extends StatelessWidget {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text('Cancel',
-                style: GoogleFonts.dmSans(color: AppColors.muted)),
+                style: GoogleFonts.dmSans(color: c.muted)),
           ),
           TextButton(
             onPressed: () {
@@ -434,7 +496,7 @@ class ProfileScreen extends StatelessWidget {
           style: GoogleFonts.dmSans(
             fontSize: 10.5,
             fontWeight: FontWeight.w700,
-            color: AppColors.muted,
+            color: c.muted,
             letterSpacing: 0.8,
           ),
         ),
@@ -451,25 +513,38 @@ class _StatItem extends StatelessWidget {
       required this.valueColor});
 
   @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-        child: Column(
-          children: [
-            Text(icon, style: const TextStyle(fontSize: 18)),
-            const SizedBox(height: 4),
-            Text(value,
-                style: GoogleFonts.sora(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    color: valueColor)),
-            Text(label,
-                style: GoogleFonts.dmSans(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.muted)),
-          ],
-        ),
-      );
+  Widget build(BuildContext context) {
+    final c = context.clr;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+      child: Column(
+        children: [
+          Text(icon, style: const TextStyle(fontSize: 18)),
+          const SizedBox(height: 4),
+          TweenAnimationBuilder<int>(
+            tween: IntTween(
+              begin: 0,
+              end: int.tryParse(value.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0,
+            ),
+            duration: const Duration(milliseconds: 700),
+            curve: Curves.easeOut,
+            builder: (_, v, __) => Text(
+              value.contains('kg') ? '${v}kg' : '$v',
+              style: GoogleFonts.sora(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: valueColor),
+            ),
+          ),
+          Text(label,
+              style: GoogleFonts.dmSans(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w600,
+                  color: c.muted)),
+        ],
+      ),
+    );
+  }
 }
 
 class _MenuItem extends StatelessWidget {
@@ -490,44 +565,47 @@ class _MenuItem extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => GestureDetector(
-        onTap: onTap,
-        child: Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: AppColors.card,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: const [
-              BoxShadow(
-                  color: Color(0x0A000000),
-                  blurRadius: 3,
-                  offset: Offset(0, 1))
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                    color: iconBg,
-                    borderRadius: BorderRadius.circular(12)),
-                child: Icon(icon, color: iconColor, size: 18),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title,
-                        style: GoogleFonts.dmSans(
-                            fontSize: 14.5,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.dark)),
-                    Text(subtitle,
-                        style: GoogleFonts.dmSans(
-                            fontSize: 11.5, color: AppColors.muted)),
+  Widget build(BuildContext context) {
+    final c = context.clr;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: c.card,
+          borderRadius: BorderRadius.circular(16),
+          border: c.isDark ? Border.all(color: c.border, width: 1) : null,
+          boxShadow: c.isDark ? null : const [
+            BoxShadow(
+                color: Color(0x0A000000),
+                blurRadius: 3,
+                offset: Offset(0, 1))
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                  color: c.isDark ? c.elevated : iconBg,
+                  borderRadius: BorderRadius.circular(12)),
+              child: Icon(icon, color: iconColor, size: 18),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      style: GoogleFonts.dmSans(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w600,
+                          color: c.text)),
+                  Text(subtitle,
+                      style: GoogleFonts.dmSans(
+                          fontSize: 11.5, color: c.muted)),
                   ],
                 ),
               ),
@@ -551,6 +629,7 @@ class _MenuItem extends StatelessWidget {
           ),
         ),
       );
+  }
 }
 
 class _ToggleItem extends StatelessWidget {
@@ -571,50 +650,55 @@ class _ToggleItem extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: const [
-            BoxShadow(
-                color: Color(0x0A000000),
-                blurRadius: 3,
-                offset: Offset(0, 1))
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration:
-                  BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(12)),
-              child: Icon(icon, color: iconColor, size: 18),
+  Widget build(BuildContext context) {
+    final c = context.clr;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: c.card,
+        borderRadius: BorderRadius.circular(16),
+        border: c.isDark ? Border.all(color: c.border, width: 1) : null,
+        boxShadow: c.isDark ? null : const [
+          BoxShadow(
+              color: Color(0x0A000000),
+              blurRadius: 3,
+              offset: Offset(0, 1))
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+                color: c.isDark ? c.elevated : iconBg,
+                borderRadius: BorderRadius.circular(12)),
+            child: Icon(icon, color: iconColor, size: 18),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style: GoogleFonts.dmSans(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w600,
+                        color: c.text)),
+                Text(subtitle,
+                    style: GoogleFonts.dmSans(
+                        fontSize: 11.5, color: c.muted)),
+              ],
             ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title,
-                      style: GoogleFonts.dmSans(
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.dark)),
-                  Text(subtitle,
-                      style: GoogleFonts.dmSans(
-                          fontSize: 11.5, color: AppColors.muted)),
-                ],
-              ),
-            ),
-            Switch(
-              value: value,
-              onChanged: onChanged,
-              activeColor: AppColors.primary,
-            ),
-          ],
-        ),
-      );
+          ),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeColor: AppColors.primary,
+          ),
+        ],
+      ),
+    );
+  }
 }
