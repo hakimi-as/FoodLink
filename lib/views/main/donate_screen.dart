@@ -1,13 +1,16 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/routes/app_route.dart';
 import '../../models/food_item_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/food_provider.dart';
 import '../../providers/claim_provider.dart';
 import '../../widgets/status_pill.dart';
+import '../../widgets/app_empty_state.dart';
 import '../post/post_food_screen.dart';
 
 class DonateScreen extends StatelessWidget {
@@ -15,6 +18,7 @@ class DonateScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.clr;
     final auth = context.watch<AuthProvider>();
 
     if (auth.user == null) return const SizedBox.shrink();
@@ -26,14 +30,97 @@ class DonateScreen extends StatelessWidget {
   }
 }
 
+enum _SortMode { newest, oldest, mostLeft, leastLeft }
+
 // ── Donor view ──────────────────────────────────────────────────────────────
-class _DonorView extends StatelessWidget {
+class _DonorView extends StatefulWidget {
   const _DonorView();
 
   @override
+  State<_DonorView> createState() => _DonorViewState();
+}
+
+class _DonorViewState extends State<_DonorView> {
+  _SortMode _sort = _SortMode.newest;
+
+  void _showSortSheet() {
+    final c = context.clr;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        decoration: BoxDecoration(
+          color: c.card,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.fromLTRB(22, 12, 22, 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Center(
+              child: Container(
+                width: 40, height: 4,
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                    color: c.border,
+                    borderRadius: BorderRadius.circular(4)),
+              ),
+            ),
+            Text('Sort Listings',
+                style: GoogleFonts.sora(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: c.text)),
+            const SizedBox(height: 16),
+            for (final mode in _SortMode.values)
+              _SortOption(
+                label: _sortLabel(mode),
+                icon: _sortIcon(mode),
+                selected: _sort == mode,
+                onTap: () {
+                  setState(() => _sort = mode);
+                  Navigator.pop(context);
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _sortLabel(_SortMode m) {
+    switch (m) {
+      case _SortMode.newest: return 'Newest First';
+      case _SortMode.oldest: return 'Oldest First';
+      case _SortMode.mostLeft: return 'Most Remaining';
+      case _SortMode.leastLeft: return 'Least Remaining';
+    }
+  }
+
+  IconData _sortIcon(_SortMode m) {
+    switch (m) {
+      case _SortMode.newest: return Icons.arrow_downward;
+      case _SortMode.oldest: return Icons.arrow_upward;
+      case _SortMode.mostLeft: return Icons.inventory_2_outlined;
+      case _SortMode.leastLeft: return Icons.warning_amber_outlined;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final c = context.clr;
     final food = context.watch<FoodProvider>();
     final claim = context.watch<ClaimProvider>();
+
+    final sorted = List.of(food.donorItems)
+      ..sort((a, b) {
+        switch (_sort) {
+          case _SortMode.newest: return b.createdAt.compareTo(a.createdAt);
+          case _SortMode.oldest: return a.createdAt.compareTo(b.createdAt);
+          case _SortMode.mostLeft: return b.quantity.compareTo(a.quantity);
+          case _SortMode.leastLeft: return a.quantity.compareTo(b.quantity);
+        }
+      });
 
     final posted = food.donorItems.length;
     final claimed = food.donorItems
@@ -44,13 +131,13 @@ class _DonorView extends StatelessWidget {
         .length;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
             // ── Dark gradient header
             Container(
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                   gradient: AppColors.headerGradient),
               padding: const EdgeInsets.fromLTRB(22, 20, 22, 28),
               child: Column(
@@ -122,7 +209,16 @@ class _DonorView extends StatelessWidget {
             ),
             // ── Content
             Expanded(
-              child: ListView(
+              child: RefreshIndicator(
+                color: AppColors.primary,
+                onRefresh: () async {
+                  HapticFeedback.lightImpact();
+                  await Future.wait([
+                    context.read<FoodProvider>().refreshDonorItems(),
+                    Future.delayed(const Duration(milliseconds: 600)),
+                  ]);
+                },
+                child: ListView(
                 padding: const EdgeInsets.all(22),
                 children: [
                   Row(
@@ -132,31 +228,45 @@ class _DonorView extends StatelessWidget {
                           style: GoogleFonts.sora(
                               fontSize: 17,
                               fontWeight: FontWeight.w700,
-                              color: AppColors.dark)),
-                      Row(
-                        children: [
-                          const Icon(Icons.swap_vert,
-                              size: 14, color: AppColors.muted),
-                          const SizedBox(width: 4),
-                          Text('Sort',
-                              style: GoogleFonts.dmSans(
-                                  fontSize: 12,
-                                  color: AppColors.muted)),
-                        ],
+                              color: c.text)),
+                      GestureDetector(
+                        onTap: _showSortSheet,
+                        child: Row(
+                          children: [
+                            Icon(Icons.swap_vert,
+                                size: 14, color: c.muted),
+                            const SizedBox(width: 4),
+                            Text(_sortLabel(_sort),
+                                style: GoogleFonts.dmSans(
+                                    fontSize: 12,
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.w600)),
+                          ],
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  ...food.donorItems
-                      .map((item) => _DonationCard(item: item))
-                      .toList(),
+                  if (sorted.isEmpty)
+                    AppEmptyState(
+                      emoji: '📦',
+                      title: 'No active listings',
+                      subtitle: 'Post your first food donation today!',
+                      ctaLabel: 'Post Food',
+                      onCta: () => Navigator.push(
+                          context,
+                          AppRoute(builder: (_) => const PostFoodScreen())),
+                    )
+                  else
+                    ...sorted
+                        .map((item) => _DonationCard(item: item))
+                        .toList(),
                   const SizedBox(height: 6),
                   // Add food button
                   GestureDetector(
                     onTap: () => Navigator.push(
                         context,
-                        MaterialPageRoute(
-                            builder: (_) => const PostFoodScreen())),
+                        AppRoute(builder: (_) => const PostFoodScreen())),
                     child: Container(
                       padding: const EdgeInsets.all(22),
                       decoration: BoxDecoration(
@@ -209,6 +319,7 @@ class _DonorView extends StatelessWidget {
                     ),
                   ),
                 ],
+              ),
               ),
             ),
           ],
@@ -274,6 +385,7 @@ class _DonationCard extends StatefulWidget {
 class _DonationCardState extends State<_DonationCard> {
   @override
   Widget build(BuildContext context) {
+    final c = context.clr;
     final item = widget.item;
     final food = context.read<FoodProvider>();
 
@@ -286,7 +398,7 @@ class _DonationCardState extends State<_DonationCard> {
       pillType = PillType.open;
     }
 
-    Color qtyColor = AppColors.dark;
+    Color qtyColor = c.text;
     if (item.quantity <= 0) qtyColor = const Color(0xFF94A3B8);
     if (item.quantity <= 2 && item.quantity > 0) {
       qtyColor = const Color(0xFFC2410C);
@@ -296,7 +408,7 @@ class _DonationCardState extends State<_DonationCard> {
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: c.card,
         borderRadius: BorderRadius.circular(20),
         boxShadow: const [
           BoxShadow(
@@ -333,7 +445,7 @@ class _DonationCardState extends State<_DonationCard> {
                         style: GoogleFonts.sora(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
-                            color: AppColors.dark,
+                            color: c.text,
                             height: 1.2)),
                     const SizedBox(height: 3),
                     Row(
@@ -345,7 +457,7 @@ class _DonationCardState extends State<_DonationCard> {
                           child: Text(item.pickupLocation,
                               style: GoogleFonts.dmSans(
                                   fontSize: 12,
-                                  color: AppColors.muted),
+                                  color: c.muted),
                               overflow: TextOverflow.ellipsis),
                         ),
                       ],
@@ -355,7 +467,7 @@ class _DonationCardState extends State<_DonationCard> {
                       'Posted ${item.postedAgo} · Exp. ${TimeOfDay.fromDateTime(item.expiryTime).format(context)}',
                       style: GoogleFonts.dmSans(
                           fontSize: 11,
-                          color: const Color(0xFF94A3B8)),
+                          color: c.muted),
                     ),
                   ],
                 ),
@@ -372,14 +484,14 @@ class _DonationCardState extends State<_DonationCard> {
                       style: GoogleFonts.dmSans(
                           fontSize: 9,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.muted,
+                          color: c.muted,
                           letterSpacing: 0.5)),
                 ],
               ),
             ],
           ),
           const SizedBox(height: 14),
-          const Divider(color: AppColors.border, height: 1),
+          Divider(color: c.border, height: 1),
           const SizedBox(height: 14),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -423,21 +535,24 @@ class _QtyBtn extends StatelessWidget {
       {required this.icon, required this.onTap, required this.danger});
 
   @override
-  Widget build(BuildContext context) => GestureDetector(
-        onTap: onTap,
-        child: Container(
-          width: 32,
-          height: 32,
-          decoration: BoxDecoration(
-            color: AppColors.card,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: AppColors.border, width: 1.5),
-          ),
-          child: Icon(icon,
-              size: 16,
-              color: danger ? const Color(0xFFEF4444) : AppColors.dark),
+  Widget build(BuildContext context) {
+    final c = context.clr;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          color: c.card,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: c.border, width: 1.5),
         ),
-      );
+        child: Icon(icon,
+            size: 16,
+            color: danger ? const Color(0xFFEF4444) : c.text),
+      ),
+    );
+  }
 }
 
 // ── Verify Pickups modal ─────────────────────────────────────────────────────
@@ -447,9 +562,10 @@ class _VerifyModal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.clr;
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.card,
+      decoration: BoxDecoration(
+        color: c.card,
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       padding: const EdgeInsets.fromLTRB(22, 12, 22, 36),
@@ -462,7 +578,7 @@ class _VerifyModal extends StatelessWidget {
               height: 4,
               margin: const EdgeInsets.only(bottom: 20),
               decoration: BoxDecoration(
-                  color: AppColors.border,
+                  color: c.border,
                   borderRadius: BorderRadius.circular(4)),
             ),
           ),
@@ -473,17 +589,17 @@ class _VerifyModal extends StatelessWidget {
                   style: GoogleFonts.sora(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.dark)),
+                      color: c.text)),
               GestureDetector(
                 onTap: () => Navigator.pop(context),
                 child: Container(
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
+                    color: c.elevated,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.close, size: 16, color: AppColors.muted),
+                  child: Icon(Icons.close, size: 16, color: c.muted),
                 ),
               ),
             ],
@@ -493,7 +609,7 @@ class _VerifyModal extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(20),
               child: Text('No claims to verify yet.',
-                  style: GoogleFonts.dmSans(color: AppColors.muted)),
+                  style: GoogleFonts.dmSans(color: c.muted)),
             )
           else
             ...claims.map((c) => _ClaimRow(claim: c)).toList(),
@@ -516,12 +632,13 @@ class _ClaimRowState extends State<_ClaimRow> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.clr;
     final isDone = _done || widget.claim.isCompleted;
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: c.elevated,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
@@ -546,11 +663,11 @@ class _ClaimRowState extends State<_ClaimRow> {
                     style: GoogleFonts.dmSans(
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
-                        color: AppColors.dark)),
+                        color: c.text)),
                 Text(
                   '${widget.claim.quantity} portions · ${widget.claim.studentName}',
                   style: GoogleFonts.dmSans(
-                      fontSize: 11, color: AppColors.muted),
+                      fontSize: 11, color: c.muted),
                 ),
                 const SizedBox(height: 4),
                 Container(
@@ -609,8 +726,9 @@ class _LockedDonateView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.clr;
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Center(
           child: Padding(
@@ -634,19 +752,67 @@ class _LockedDonateView extends StatelessWidget {
                     style: GoogleFonts.sora(
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.dark)),
+                        color: c.text)),
                 const SizedBox(height: 8),
                 Text(
                   'Only registered donors (café/restaurant owners) can post food. Register as a Donor to access this feature.',
                   style: GoogleFonts.dmSans(
                       fontSize: 13,
-                      color: AppColors.muted,
+                      color: c.muted,
                       height: 1.5),
                   textAlign: TextAlign.center,
                 ),
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SortOption extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onTap;
+  const _SortOption(
+      {required this.label,
+      required this.icon,
+      required this.selected,
+      required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.clr;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.primaryLight : c.background,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+              color: selected ? AppColors.primary : c.border,
+              width: 1.5),
+        ),
+        child: Row(
+          children: [
+            Icon(icon,
+                size: 18,
+                color: selected ? AppColors.primary : c.muted),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(label,
+                  style: GoogleFonts.dmSans(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: selected ? AppColors.primary : c.text)),
+            ),
+            if (selected)
+              const Icon(Icons.check, color: AppColors.primary, size: 18),
+          ],
         ),
       ),
     );
