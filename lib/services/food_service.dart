@@ -8,25 +8,27 @@ class FoodService {
   CollectionReference<Map<String, dynamic>> get _col =>
       _db.collection(AppConstants.foodItemsCollection);
 
+  // No orderBy here — combining where+orderBy requires a composite index.
+  // Sorting is done client-side in FoodProvider so existing documents work too.
   Stream<List<FoodItemModel>> getAvailableFoods() => _col
       .where('status', isEqualTo: AppConstants.statusAvailable)
-      .orderBy('createdAt', descending: true)
       .snapshots()
-      .map((snap) =>
-          snap.docs.map((d) => FoodItemModel.fromMap(d.data(), d.id)).toList());
+      .map((snap) => snap.docs
+          .map((d) => FoodItemModel.fromMap(d.data(), d.id))
+          .toList());
 
   Stream<List<FoodItemModel>> getDonorFoods(String donorId) => _col
       .where('donorId', isEqualTo: donorId)
-      .orderBy('createdAt', descending: true)
       .snapshots()
-      .map((snap) =>
-          snap.docs.map((d) => FoodItemModel.fromMap(d.data(), d.id)).toList());
+      .map((snap) => snap.docs
+          .map((d) => FoodItemModel.fromMap(d.data(), d.id))
+          .toList());
 
   Stream<List<FoodItemModel>> getAllFoods() => _col
-      .orderBy('createdAt', descending: true)
       .snapshots()
-      .map((snap) =>
-          snap.docs.map((d) => FoodItemModel.fromMap(d.data(), d.id)).toList());
+      .map((snap) => snap.docs
+          .map((d) => FoodItemModel.fromMap(d.data(), d.id))
+          .toList());
 
   Future<String> addFoodItem(FoodItemModel item) async {
     final ref = _col.doc();

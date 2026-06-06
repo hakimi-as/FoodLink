@@ -21,6 +21,7 @@ class ClaimProvider extends ChangeNotifier {
 
   void listenMyClaims(String studentId) {
     _service.getClaimsForStudent(studentId).listen((c) {
+      c.sort((a, b) => b.timestamp.compareTo(a.timestamp));
       _myClaims = c;
       notifyListeners();
     });
@@ -28,6 +29,7 @@ class ClaimProvider extends ChangeNotifier {
 
   void listenDonorClaims(String donorId) {
     _service.getClaimsForDonor(donorId).listen((c) {
+      c.sort((a, b) => b.timestamp.compareTo(a.timestamp));
       _donorClaims = c;
       notifyListeners();
     });
@@ -35,6 +37,7 @@ class ClaimProvider extends ChangeNotifier {
 
   void listenAllClaims() {
     _service.getAllClaims().listen((c) {
+      c.sort((a, b) => b.timestamp.compareTo(a.timestamp));
       _allClaims = c;
       notifyListeners();
     });
