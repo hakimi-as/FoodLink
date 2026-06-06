@@ -98,8 +98,21 @@ class AuthService {
 
   Stream<List<UserModel>> getAllUsers() => _db
       .collection(AppConstants.usersCollection)
-      .orderBy('createdAt', descending: true)
       .snapshots()
-      .map((snap) =>
-          snap.docs.map((d) => UserModel.fromMap(d.data())).toList());
+      .map((snap) {
+        final list = snap.docs.map((d) => UserModel.fromMap(d.data())).toList();
+        list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        return list;
+      });
+
+  Future<void> updateUserProfile(String uid, {required String name, required String phone}) =>
+      _db.collection(AppConstants.usersCollection).doc(uid).update({
+        'name': name,
+        'phone': phone,
+      });
+
+  Future<void> updateUserPhoto(String uid, String photoUrl) =>
+      _db.collection(AppConstants.usersCollection).doc(uid).update({
+        'photoUrl': photoUrl,
+      });
 }

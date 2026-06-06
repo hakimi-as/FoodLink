@@ -1,30 +1,37 @@
-import 'dart:io';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cloudinary_public/cloudinary_public.dart';
+import 'package:image_picker/image_picker.dart';
+import '../core/config/cloudinary_config.dart';
 
 class StorageService {
-  final FirebaseStorage _storage = FirebaseStorage.instance;
+  static final CloudinaryPublic _cloudinary = CloudinaryPublic(
+    CloudinaryConfig.cloudName,
+    CloudinaryConfig.uploadPreset,
+    cache: false,
+  );
 
-  Future<String> uploadFoodImage(File file, String itemId) async {
-    final ref = _storage.ref('food_images/$itemId.jpg');
-    final task = await ref.putFile(
-      file,
-      SettableMetadata(contentType: 'image/jpeg'),
+  Future<String> uploadProfilePhoto(XFile file, String uid) async {
+    final bytes = await file.readAsBytes();
+    final response = await _cloudinary.uploadFile(
+      CloudinaryFile.fromBytesData(
+        bytes,
+        identifier: 'profile_$uid',
+        resourceType: CloudinaryResourceType.Image,
+        folder: 'foodlink/profiles',
+      ),
     );
-    return task.ref.getDownloadURL();
+    return response.secureUrl;
   }
 
-  Future<String> uploadProfilePhoto(File file, String uid) async {
-    final ref = _storage.ref('profile_photos/$uid.jpg');
-    final task = await ref.putFile(
-      file,
-      SettableMetadata(contentType: 'image/jpeg'),
+  Future<String> uploadFoodImage(XFile file, String itemId) async {
+    final bytes = await file.readAsBytes();
+    final response = await _cloudinary.uploadFile(
+      CloudinaryFile.fromBytesData(
+        bytes,
+        identifier: 'food_$itemId',
+        resourceType: CloudinaryResourceType.Image,
+        folder: 'foodlink/food',
+      ),
     );
-    return task.ref.getDownloadURL();
-  }
-
-  Future<void> deleteFile(String url) async {
-    try {
-      await _storage.refFromURL(url).delete();
-    } catch (_) {}
+    return response.secureUrl;
   }
 }
