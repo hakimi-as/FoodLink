@@ -1,9 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../core/constants/app_constants.dart';
 import '../models/claim_model.dart';
+import 'stats_service.dart';
 
 class ClaimService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final StatsService _stats = StatsService();
 
   CollectionReference<Map<String, dynamic>> get _col =>
       _db.collection(AppConstants.claimsCollection);
@@ -51,6 +53,8 @@ class ClaimService {
     });
 
     final snap = await claimRef.get();
+    // Fire-and-forget — stats failure must not break the claim flow
+    _stats.incrementMealsClaimed(quantity);
     return ClaimModel.fromMap(snap.data()!, snap.id);
   }
 
@@ -59,13 +63,11 @@ class ClaimService {
 
   Stream<List<ClaimModel>> getClaimsForStudent(String studentId) => _col
       .where('studentId', isEqualTo: studentId)
-      .orderBy('timestamp', descending: true)
       .snapshots()
       .map((s) => s.docs.map((d) => ClaimModel.fromMap(d.data(), d.id)).toList());
 
   Stream<List<ClaimModel>> getClaimsForDonor(String donorId) => _col
       .where('donorId', isEqualTo: donorId)
-      .orderBy('timestamp', descending: true)
       .snapshots()
       .map((s) => s.docs.map((d) => ClaimModel.fromMap(d.data(), d.id)).toList());
 
