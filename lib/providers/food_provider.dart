@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
+import '../models/feed_filter.dart';
 import '../models/food_item_model.dart';
 import '../services/food_service.dart';
 import '../services/storage_service.dart';
@@ -17,6 +18,7 @@ class FoodProvider extends ChangeNotifier {
   String? _error;
   String _searchQuery = '';
   String _activeChip = 'All';
+  FeedFilter _filter = const FeedFilter();
 
   StreamSubscription<List<FoodItemModel>>? _feedSub;
   StreamSubscription<List<FoodItemModel>>? _donorSub;
@@ -29,6 +31,7 @@ class FoodProvider extends ChangeNotifier {
   bool get loading => _loading;
   String? get error => _error;
   String get activeChip => _activeChip;
+  FeedFilter get filter => _filter;
 
   List<FoodItemModel> get _filteredFeed {
     var items = List<FoodItemModel>.from(_feed);
@@ -50,6 +53,19 @@ class FoodProvider extends ChangeNotifier {
         items = items.where((i) => i.isUrgent).toList();
         break;
     }
+    // Apply advanced filter
+    if (_filter.halalOnly) {
+      items = items.where((i) => i.isHalal).toList();
+    }
+    if (_filter.maxExpiryHours != null) {
+      items = items.where((i) {
+        final h = i.expiryTime.difference(DateTime.now()).inHours;
+        return h >= 0 && h <= _filter.maxExpiryHours!;
+      }).toList();
+    }
+    if (_filter.minQuantity > 1) {
+      items = items.where((i) => i.quantity >= _filter.minQuantity).toList();
+    }
     return items;
   }
 
@@ -60,6 +76,16 @@ class FoodProvider extends ChangeNotifier {
 
   void setChip(String chip) {
     _activeChip = chip;
+    notifyListeners();
+  }
+
+  void setFilter(FeedFilter f) {
+    _filter = f;
+    notifyListeners();
+  }
+
+  void clearFilter() {
+    _filter = const FeedFilter();
     notifyListeners();
   }
 
