@@ -58,8 +58,25 @@ class ClaimService {
     return ClaimModel.fromMap(snap.data()!, snap.id);
   }
 
-  Future<void> markClaimCompleted(String claimId) =>
-      _col.doc(claimId).update({'status': AppConstants.claimCompleted});
+  Future<void> markClaimCompleted(String claimId) async {
+    final snap = await _col.doc(claimId).get();
+    if (!snap.exists) return;
+    final claim = ClaimModel.fromMap(snap.data()!, snap.id);
+    if (claim.isCompleted) return;
+
+    await _col.doc(claimId).update({'status': AppConstants.claimCompleted});
+
+    // Award gamification points — fire-and-forget, must not break completion.
+    final usersCol = _db.collection(AppConstants.usersCollection);
+    usersCol.doc(claim.donorId).set(
+      {'donorPoints': FieldValue.increment(claim.quantity)},
+      SetOptions(merge: true),
+    ).catchError((_) {});
+    usersCol.doc(claim.studentId).set(
+      {'studentPoints': FieldValue.increment(1)},
+      SetOptions(merge: true),
+    ).catchError((_) {});
+  }
 
   Stream<List<ClaimModel>> getClaimsForStudent(String studentId) => _col
       .where('studentId', isEqualTo: studentId)

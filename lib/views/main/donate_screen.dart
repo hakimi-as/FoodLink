@@ -11,6 +11,8 @@ import '../../providers/food_provider.dart';
 import '../../providers/claim_provider.dart';
 import '../../widgets/status_pill.dart';
 import '../../widgets/app_empty_state.dart';
+import '../../widgets/qr_scanner_screen.dart';
+import '../../models/claim_model.dart';
 import '../post/post_food_screen.dart';
 
 class DonateScreen extends StatelessWidget {
@@ -328,7 +330,7 @@ class _DonorViewState extends State<_DonorView> {
     );
   }
 
-  void _showVerifyModal(BuildContext context, List claims) {
+  void _showVerifyModal(BuildContext context, List<ClaimModel> claims) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -557,8 +559,30 @@ class _QtyBtn extends StatelessWidget {
 
 // ── Verify Pickups modal ─────────────────────────────────────────────────────
 class _VerifyModal extends StatelessWidget {
-  final List claims;
+  final List<ClaimModel> claims;
   const _VerifyModal({required this.claims});
+
+  Future<void> _scanToVerify(BuildContext context) async {
+    final pending = claims.where((c) => c.isPending).toList();
+    if (pending.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('No pending pickups to verify yet.'),
+        behavior: SnackBarBehavior.floating,
+      ));
+      return;
+    }
+    final matched = await Navigator.of(context).push<ClaimModel>(
+      MaterialPageRoute(builder: (_) => QrScannerScreen(pendingClaims: pending)),
+    );
+    if (matched != null && context.mounted) {
+      await context.read<ClaimProvider>().markCompleted(matched.claimId);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Pickup confirmed for "${matched.itemTitle}" 🎉'),
+        backgroundColor: AppColors.green,
+        behavior: SnackBarBehavior.floating,
+      ));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -604,6 +628,27 @@ class _VerifyModal extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: 14),
+          GestureDetector(
+            onTap: () => _scanToVerify(context),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              decoration: BoxDecoration(
+                gradient: AppColors.primaryGradient,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.qr_code_scanner, color: Colors.white, size: 18),
+                  const SizedBox(width: 8),
+                  Text('Scan Pickup QR Code', style: GoogleFonts.dmSans(
+                      fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white)),
+                ],
+              ),
+            ),
+          ),
           const SizedBox(height: 18),
           if (claims.isEmpty)
             Padding(
@@ -620,7 +665,7 @@ class _VerifyModal extends StatelessWidget {
 }
 
 class _ClaimRow extends StatefulWidget {
-  final dynamic claim;
+  final ClaimModel claim;
   const _ClaimRow({required this.claim});
 
   @override

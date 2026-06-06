@@ -14,6 +14,7 @@ import '../../widgets/skeleton_food_card.dart';
 import '../../widgets/app_empty_state.dart';
 import '../../widgets/filter_sheet.dart';
 import '../secondary/notifications_screen.dart';
+import '../secondary/leaderboard_screen.dart';
 
 class FeedScreen extends StatelessWidget {
   const FeedScreen({super.key});
@@ -84,6 +85,22 @@ class FeedScreen extends StatelessWidget {
                               ),
                             ),
                           ],
+                        ),
+                      ),
+                      // Leaderboard
+                      GestureDetector(
+                        onTap: () => openLeaderboard(context),
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          margin: const EdgeInsets.only(right: 10),
+                          decoration: BoxDecoration(
+                            color: c.card,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: c.border, width: 1.5),
+                          ),
+                          child: Icon(Icons.emoji_events_outlined,
+                              size: 18, color: c.bodyText),
                         ),
                       ),
                       // Notification bell

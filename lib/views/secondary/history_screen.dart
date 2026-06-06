@@ -10,6 +10,7 @@ import '../../providers/rating_provider.dart';
 import '../../widgets/status_pill.dart';
 import '../../widgets/app_empty_state.dart';
 import '../../widgets/rating_sheet.dart';
+import '../../widgets/pickup_qr_sheet.dart';
 import '../../models/claim_model.dart';
 import '../../models/food_item_model.dart';
 
@@ -183,6 +184,11 @@ class _ClaimHistoryCardState extends State<_ClaimHistoryCard> {
     }
   }
 
+  void _showQr() {
+    HapticFeedback.selectionClick();
+    PickupQrSheet.show(context, widget.claim);
+  }
+
   void _openRating() {
     HapticFeedback.selectionClick();
     RatingSheet.show(
@@ -208,7 +214,32 @@ class _ClaimHistoryCardState extends State<_ClaimHistoryCard> {
       pill: c.isPending ? PillType.pending : PillType.completed,
       rightTop: c.isPending ? 'Pending' : 'Completed',
       rightBottom: c.isPending ? 'Pickup Soon' : 'Done',
-      rateButton: canRate
+      rateButton: c.isPending
+          ? GestureDetector(
+              onTap: _showQr,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryLight,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.qr_code, size: 13, color: AppColors.primary),
+                    const SizedBox(width: 4),
+                    Text('Show QR',
+                        style: GoogleFonts.dmSans(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.primary)),
+                  ],
+                ),
+              ),
+            )
+          : canRate
           ? GestureDetector(
               onTap: _openRating,
               child: Container(
