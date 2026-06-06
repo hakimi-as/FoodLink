@@ -1,0 +1,53 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── users ──────────────────────────────────────────────────────────────
+    // Any authenticated user can read profiles (needed for donor name display).
+    // A user can only write their own document.
+    match /users/{userId} {
+      allow read:  if request.auth != null;
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null && request.auth.uid == userId;
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // ── food_items ─────────────────────────────────────────────────────────
+    match /food_items/{itemId} {
+      allow read:   if request.auth != null;
+      allow create: if request.auth != null;
+      // Donor/admin can update anything.
+      // Any authenticated user can decrement quantity+status (claim transaction).
+      allow update: if request.auth != null
+                    && (resource.data.donorId == request.auth.uid
+                        || isAdmin()
+                        || request.resource.data.diff(resource.data).changedKeys()
+                             .hasOnly(['quantity', 'status']));
+      allow delete: if request.auth != null
+                    && (resource.data.donorId == request.auth.uid
+                        || isAdmin());
+    }
+
+    // ── claims ─────────────────────────────────────────────────────────────
+    // Students can create claims for themselves.
+    // Both the student and the donor can read the claim.
+    // Only the donor can update (verify pickup).
+    match /claims/{claimId} {
+      allow create: if request.auth != null
+                    && request.resource.data.studentId == request.auth.uid;
+      allow read:   if request.auth != null
+                    && (resource.data.studentId == request.auth.uid
+                        || resource.data.donorId  == request.auth.uid
+                        || isAdmin());
+      allow update: if request.auth != null
+                    && (resource.data.donorId == request.auth.uid
+                        || isAdmin());
+      allow delete: if request.auth != null && isAdmin();
+    }
+
+    // ── helper ─────────────────────────────────────────────────────────────
+    function isAdmin() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+  }
+}
