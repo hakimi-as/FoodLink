@@ -64,6 +64,7 @@ class _PostFoodScreenState extends State<PostFoodScreen> {
     final ok = await food.postFood(
       donorId: auth.user!.uid,
       donorName: auth.user!.name,
+      donorVerified: auth.user!.isVerified,
       title: _titleCtrl.text.trim(),
       description: _descCtrl.text.trim(),
       pickupLocation: _locCtrl.text.trim(),

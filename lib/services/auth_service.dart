@@ -115,4 +115,9 @@ class AuthService {
       _db.collection(AppConstants.usersCollection).doc(uid).update({
         'photoUrl': photoUrl,
       });
+
+  Future<void> setVerified(String uid, bool isVerified) =>
+      _db.collection(AppConstants.usersCollection).doc(uid).update({
+        'isVerified': isVerified,
+      });
 }

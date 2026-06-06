@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:share_plus/share_plus.dart';
 import '../core/theme/app_colors.dart';
+import '../core/utils/map_launcher.dart';
 import '../models/food_item_model.dart';
 import 'animated_pressable.dart';
 import 'halal_badge.dart';
+import 'verified_badge.dart';
 
 class FoodCard extends StatelessWidget {
   final FoodItemModel item;
@@ -104,20 +107,48 @@ class FoodCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(item.donorName.toUpperCase(), style: GoogleFonts.dmSans(
-                      fontSize: 11, fontWeight: FontWeight.w600,
-                      color: AppColors.primary, letterSpacing: 0.5)),
-                  const SizedBox(height: 4),
-                  Text(item.title, style: GoogleFonts.sora(
-                      fontSize: 16, fontWeight: FontWeight.w700,
-                      color: c.text, height: 1.2)),
-                  const SizedBox(height: 8),
                   Row(children: [
-                    Icon(Icons.location_on, size: 11, color: AppColors.primary),
-                    const SizedBox(width: 4),
-                    Text(item.pickupLocation, style: GoogleFonts.dmSans(
-                        fontSize: 12, color: c.muted)),
+                    Text(item.donorName.toUpperCase(), style: GoogleFonts.dmSans(
+                        fontSize: 11, fontWeight: FontWeight.w600,
+                        color: AppColors.primary, letterSpacing: 0.5)),
+                    if (item.donorVerified) ...[
+                      const SizedBox(width: 4),
+                      const VerifiedBadge(size: 13),
+                    ],
                   ]),
+                  const SizedBox(height: 4),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(item.title, style: GoogleFonts.sora(
+                            fontSize: 16, fontWeight: FontWeight.w700,
+                            color: c.text, height: 1.2)),
+                      ),
+                      _iconButton(
+                        icon: Icons.share_outlined,
+                        color: c.muted,
+                        onTap: () => _share(item),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: () => openDirections(item.pickupLocation),
+                    child: Row(children: [
+                      Icon(Icons.location_on, size: 11, color: AppColors.primary),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(item.pickupLocation, style: GoogleFonts.dmSans(
+                            fontSize: 12, color: c.muted)),
+                      ),
+                      Icon(Icons.directions, size: 15, color: AppColors.primary),
+                      const SizedBox(width: 2),
+                      Text('Directions', style: GoogleFonts.dmSans(
+                          fontSize: 11, fontWeight: FontWeight.w600,
+                          color: AppColors.primary)),
+                    ]),
+                  ),
                   const SizedBox(height: 12),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -157,4 +188,26 @@ class FoodCard extends StatelessWidget {
     decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(20)),
     child: child,
   );
+
+  Widget _iconButton({required IconData icon, required Color color, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 8, bottom: 2),
+        child: Icon(icon, size: 18, color: color),
+      ),
+    );
+  }
+
+  void _share(FoodItemModel item) {
+    Share.share(
+      '${item.title} — available via FoodLink!\n\n'
+      '${item.description.isNotEmpty ? '${item.description}\n\n' : ''}'
+      '📍 Pickup: ${item.pickupLocation}\n'
+      '⏰ Available until: ${item.timeRemaining}\n'
+      '🍽️ Quantity: ${item.quantity} left\n\n'
+      'Shared from the FoodLink app — connecting surplus food with people who need it.',
+      subject: 'FoodLink: ${item.title}',
+    );
+  }
 }

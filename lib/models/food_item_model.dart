@@ -5,6 +5,7 @@ class FoodItemModel {
   final String itemId;
   final String donorId;
   final String donorName;
+  final bool donorVerified;
   final String imageUrl;
   final String title;
   final String description;
@@ -20,6 +21,7 @@ class FoodItemModel {
     required this.itemId,
     required this.donorId,
     required this.donorName,
+    this.donorVerified = false,
     required this.imageUrl,
     required this.title,
     required this.description,
@@ -61,6 +63,7 @@ class FoodItemModel {
         itemId: id,
         donorId: map['donorId'] as String,
         donorName: (map['donorName'] as String?) ?? '',
+        donorVerified: (map['donorVerified'] as bool?) ?? false,
         imageUrl: (map['imageUrl'] as String?) ?? '',
         title: map['title'] as String,
         description: (map['description'] as String?) ?? '',
@@ -81,6 +84,7 @@ class FoodItemModel {
   Map<String, dynamic> toMap() => {
         'donorId': donorId,
         'donorName': donorName,
+        'donorVerified': donorVerified,
         'imageUrl': imageUrl,
         'title': title,
         'description': description,
@@ -97,6 +101,7 @@ class FoodItemModel {
         itemId: itemId,
         donorId: donorId,
         donorName: donorName,
+        donorVerified: donorVerified,
         imageUrl: imageUrl,
         title: title,
         description: description,

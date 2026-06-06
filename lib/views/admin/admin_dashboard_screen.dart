@@ -8,6 +8,8 @@ import '../../services/auth_service.dart';
 import '../../models/user_model.dart';
 import '../../models/food_item_model.dart';
 import '../../models/claim_model.dart';
+import '../../widgets/verified_badge.dart';
+import '../../widgets/admin_charts.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -381,11 +383,17 @@ class _UserRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(user.name,
-                    style: GoogleFonts.dmSans(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: c.text)),
+                Row(children: [
+                  Flexible(child: Text(user.name, overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.dmSans(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: c.text))),
+                  if (user.isVerified) ...[
+                    const SizedBox(width: 4),
+                    const VerifiedBadge(size: 13),
+                  ],
+                ]),
                 Text(user.email,
                     style: GoogleFonts.dmSans(
                         fontSize: 11.5, color: c.muted)),
@@ -416,6 +424,27 @@ class _UserRow extends StatelessWidget {
               ],
             ),
           ),
+          if (user.role == 'donor')
+            GestureDetector(
+              onTap: () => AuthService().setVerified(user.uid, !user.isVerified),
+              child: Container(
+                width: 34,
+                height: 34,
+                margin: const EdgeInsets.only(right: 8),
+                decoration: BoxDecoration(
+                  color: user.isVerified ? const Color(0xFFDBEAFE) : c.elevated,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                      color: user.isVerified ? const Color(0xFF2563EB) : c.border,
+                      width: 1.5),
+                ),
+                child: Icon(
+                  user.isVerified ? Icons.verified : Icons.verified_outlined,
+                  color: user.isVerified ? const Color(0xFF2563EB) : c.muted,
+                  size: 16,
+                ),
+              ),
+            ),
           GestureDetector(
             onTap: onDelete,
             child: Container(
@@ -605,8 +634,16 @@ class _ClaimsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ListView.builder(
         padding: const EdgeInsets.all(14),
-        itemCount: claims.length,
-        itemBuilder: (_, i) => _ClaimRow(claim: claims[i], index: i + 1),
+        itemCount: claims.length + 1,
+        itemBuilder: (_, i) {
+          if (i == 0) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: AdminCharts(claims: claims),
+            );
+          }
+          return _ClaimRow(claim: claims[i - 1], index: i);
+        },
       );
 }
 

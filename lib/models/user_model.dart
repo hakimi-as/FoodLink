@@ -10,6 +10,9 @@ class UserModel {
   final String? photoUrl;
   final double? avgRating;
   final int ratingCount;
+  final bool isVerified;
+  final int donorPoints;
+  final int studentPoints;
   final DateTime createdAt;
 
   const UserModel({
@@ -21,6 +24,9 @@ class UserModel {
     this.photoUrl,
     this.avgRating,
     this.ratingCount = 0,
+    this.isVerified = false,
+    this.donorPoints = 0,
+    this.studentPoints = 0,
     required this.createdAt,
   });
 
@@ -37,6 +43,9 @@ class UserModel {
         photoUrl: map['photoUrl'] as String?,
         avgRating: (map['avgRating'] as num?)?.toDouble(),
         ratingCount: (map['ratingCount'] as num?)?.toInt() ?? 0,
+        isVerified: (map['isVerified'] as bool?) ?? false,
+        donorPoints: (map['donorPoints'] as num?)?.toInt() ?? 0,
+        studentPoints: (map['studentPoints'] as num?)?.toInt() ?? 0,
         createdAt: map['createdAt'] is Timestamp
             ? (map['createdAt'] as Timestamp).toDate()
             : DateTime.now(),
@@ -58,6 +67,9 @@ class UserModel {
     String? photoUrl,
     double? avgRating,
     int? ratingCount,
+    bool? isVerified,
+    int? donorPoints,
+    int? studentPoints,
   }) =>
       UserModel(
         uid: uid,
@@ -68,6 +80,9 @@ class UserModel {
         photoUrl: photoUrl ?? this.photoUrl,
         avgRating: avgRating ?? this.avgRating,
         ratingCount: ratingCount ?? this.ratingCount,
+        isVerified: isVerified ?? this.isVerified,
+        donorPoints: donorPoints ?? this.donorPoints,
+        studentPoints: studentPoints ?? this.studentPoints,
         createdAt: createdAt,
       );
 }

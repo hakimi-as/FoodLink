@@ -180,6 +180,7 @@ class FoodProvider extends ChangeNotifier {
   Future<bool> postFood({
     required String donorId,
     required String donorName,
+    bool donorVerified = false,
     required String title,
     required String description,
     required String pickupLocation,
@@ -201,6 +202,7 @@ class FoodProvider extends ChangeNotifier {
         itemId: '',
         donorId: donorId,
         donorName: donorName,
+        donorVerified: donorVerified,
         imageUrl: imageUrl,
         title: title,
         description: description,
