@@ -25,6 +25,8 @@ dependencies:
   cached_network_image: ^3.4.1
   shimmer: ^3.0.0
   confetti: ^0.7.0
+  firebase_messaging: ^15.0.0
+  flutter_local_notifications: ^18.0.0
 
   # Utilities
   image_picker: ^1.1.2
