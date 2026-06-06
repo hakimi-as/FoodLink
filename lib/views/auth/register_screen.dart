@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
@@ -14,6 +14,8 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  FLColors get c => context.clr;
+
   final _formKey = GlobalKey<FormState>();
   final _nameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
@@ -42,7 +44,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
       password: _passCtrl.text,
       role: _role,
     );
-    if (!ok && mounted) {
+    if (!mounted) return;
+    if (ok) {
+      // Pop back to root so _AuthGate (which now sees isLoggedIn=true) shows MainShell.
+      // pushAndRemoveUntil(MainShell) would bypass _AuthGate and break logout.
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(auth.error ?? 'Registration failed'),
         backgroundColor: AppColors.red,
@@ -54,8 +61,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.clr;
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -74,10 +82,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: AppColors.card,
+                          color: c.card,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                              color: AppColors.border, width: 1.5),
+                              color: c.border, width: 1.5),
                         ),
                         child: const Icon(Icons.arrow_back,
                             size: 18, color: AppColors.bodyText),
@@ -88,7 +96,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         style: GoogleFonts.sora(
                             fontSize: 20,
                             fontWeight: FontWeight.w700,
-                            color: AppColors.dark)),
+                            color: c.text)),
                   ],
                 ),
                 const SizedBox(height: 28),
@@ -281,7 +289,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   child: RichText(
                     text: TextSpan(
                       style: GoogleFonts.dmSans(
-                          fontSize: 13.5, color: AppColors.muted),
+                          fontSize: 13.5, color: c.muted),
                       children: [
                         const TextSpan(text: 'Already have an account? '),
                         WidgetSpan(
@@ -313,7 +321,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(4),
             gradient: active ? AppColors.primaryGradient : null,
-            color: active ? null : AppColors.border,
+            color: active ? null : c.border,
           ),
         ),
       );
@@ -323,7 +331,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         style: GoogleFonts.sora(
           fontSize: 13,
           fontWeight: FontWeight.w600,
-          color: AppColors.muted,
+          color: c.muted,
           letterSpacing: 0.8,
         ),
       );
@@ -346,16 +354,17 @@ class _RoleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.clr;
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: selected ? AppColors.primaryLight : AppColors.card,
+          color: selected ? AppColors.primaryLight : c.card,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: selected ? AppColors.primary : AppColors.border,
+            color: selected ? AppColors.primary : c.border,
             width: 2,
           ),
         ),
@@ -366,7 +375,7 @@ class _RoleCard extends StatelessWidget {
               width: 52,
               height: 52,
               decoration: BoxDecoration(
-                color: selected ? AppColors.primary : const Color(0xFFF1F5F9),
+                color: selected ? AppColors.primary : c.elevated,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Icon(icon,
@@ -378,11 +387,11 @@ class _RoleCard extends StatelessWidget {
                 style: GoogleFonts.sora(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.dark)),
+                    color: c.text)),
             const SizedBox(height: 4),
             Text(desc,
                 style: GoogleFonts.dmSans(
-                    fontSize: 11, color: AppColors.muted, height: 1.4),
+                    fontSize: 11, color: c.muted, height: 1.4),
                 textAlign: TextAlign.center),
             const SizedBox(height: 10),
             AnimatedContainer(

@@ -1,5 +1,4 @@
-import 'dart:io';
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -16,12 +15,14 @@ class PostFoodScreen extends StatefulWidget {
 }
 
 class _PostFoodScreenState extends State<PostFoodScreen> {
+  FLColors get c => context.clr;
+
   final _formKey = GlobalKey<FormState>();
   final _titleCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
   final _locCtrl = TextEditingController();
 
-  File? _imageFile;
+  XFile? _imageFile;
   int _qty = 1;
   TimeOfDay _expiryTime = TimeOfDay.now().replacing(
       hour: (TimeOfDay.now().hour + 4) % 24);
@@ -42,7 +43,7 @@ class _PostFoodScreenState extends State<PostFoodScreen> {
     final picker = ImagePicker();
     final picked =
         await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
-    if (picked != null) setState(() => _imageFile = File(picked.path));
+    if (picked != null) setState(() => _imageFile = picked);
   }
 
   Future<void> _pickTime() async {
@@ -92,8 +93,9 @@ class _PostFoodScreenState extends State<PostFoodScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.clr;
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Stack(
           children: [
@@ -101,7 +103,7 @@ class _PostFoodScreenState extends State<PostFoodScreen> {
               children: [
                 // App bar
                 Container(
-                  color: AppColors.card,
+                  color: c.card,
                   padding: const EdgeInsets.symmetric(
                       horizontal: 20, vertical: 16),
                   child: Row(
@@ -112,11 +114,11 @@ class _PostFoodScreenState extends State<PostFoodScreen> {
                           width: 38,
                           height: 38,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF1F5F9),
+                            color: c.elevated,
                             borderRadius: BorderRadius.circular(11),
                           ),
-                          child: const Icon(Icons.arrow_back,
-                              size: 16, color: AppColors.bodyText),
+                          child: Icon(Icons.arrow_back,
+                              size: 16, color: c.bodyText),
                         ),
                       ),
                       const SizedBox(width: 14),
@@ -125,7 +127,7 @@ class _PostFoodScreenState extends State<PostFoodScreen> {
                             style: GoogleFonts.sora(
                                 fontSize: 17,
                                 fontWeight: FontWeight.w700,
-                                color: AppColors.dark)),
+                                color: c.text)),
                       ),
                       TextButton(
                         onPressed: () {},
@@ -144,7 +146,7 @@ class _PostFoodScreenState extends State<PostFoodScreen> {
                   height: 3,
                   child: LinearProgressIndicator(
                     value: _progress,
-                    backgroundColor: AppColors.border,
+                    backgroundColor: c.border,
                     valueColor: const AlwaysStoppedAnimation(AppColors.primary),
                   ),
                 ),
@@ -164,7 +166,7 @@ class _PostFoodScreenState extends State<PostFoodScreen> {
                             decoration: BoxDecoration(
                               color: _imageFile != null
                                   ? null
-                                  : AppColors.card,
+                                  : c.card,
                               borderRadius: BorderRadius.circular(22),
                               border: Border.all(
                                 color: _imageFile != null
@@ -175,7 +177,7 @@ class _PostFoodScreenState extends State<PostFoodScreen> {
                               ),
                               image: _imageFile != null
                                   ? DecorationImage(
-                                      image: FileImage(_imageFile!),
+                                      image: NetworkImage(_imageFile!.path),
                                       fit: BoxFit.cover,
                                     )
                                   : null,
@@ -223,13 +225,13 @@ class _PostFoodScreenState extends State<PostFoodScreen> {
                                           style: GoogleFonts.dmSans(
                                               fontSize: 14,
                                               fontWeight: FontWeight.w600,
-                                              color: AppColors.dark)),
+                                              color: c.text)),
                                       const SizedBox(height: 4),
                                       Text(
                                           'Tap to choose from gallery or camera',
                                           style: GoogleFonts.dmSans(
                                               fontSize: 11.5,
-                                              color: AppColors.muted)),
+                                              color: c.muted)),
                                     ],
                                   ),
                           ),
@@ -254,14 +256,14 @@ class _PostFoodScreenState extends State<PostFoodScreen> {
                                 style: GoogleFonts.dmSans(
                                     fontSize: 10.5,
                                     fontWeight: FontWeight.w700,
-                                    color: AppColors.muted,
+                                    color: c.muted,
                                     letterSpacing: 0.9)),
                             const SizedBox(height: 7),
                             TextFormField(
                               controller: _descCtrl,
                               maxLines: 3,
                               style: GoogleFonts.dmSans(
-                                  fontSize: 15, color: AppColors.dark),
+                                  fontSize: 15, color: c.text),
                               decoration: InputDecoration(
                                 hintText:
                                     'Describe the food — ingredients, freshness...',
@@ -269,7 +271,7 @@ class _PostFoodScreenState extends State<PostFoodScreen> {
                                     color: const Color(0xFFCBD5E1),
                                     fontSize: 15),
                                 filled: true,
-                                fillColor: AppColors.card,
+                                fillColor: c.card,
                                 prefixIcon: const Padding(
                                   padding: EdgeInsets.only(left: 14, top: 14),
                                   child: Icon(Icons.notes,
@@ -281,13 +283,13 @@ class _PostFoodScreenState extends State<PostFoodScreen> {
                                     44, 14, 14, 14),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(14),
-                                  borderSide: const BorderSide(
-                                      color: AppColors.border, width: 1.5),
+                                  borderSide: BorderSide(
+                                      color: c.border, width: 1.5),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(14),
-                                  borderSide: const BorderSide(
-                                      color: AppColors.border, width: 1.5),
+                                  borderSide: BorderSide(
+                                      color: c.border, width: 1.5),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(14),
@@ -317,10 +319,10 @@ class _PostFoodScreenState extends State<PostFoodScreen> {
                               child: Container(
                                 padding: const EdgeInsets.all(14),
                                 decoration: BoxDecoration(
-                                  color: AppColors.card,
+                                  color: c.card,
                                   borderRadius: BorderRadius.circular(14),
                                   border: Border.all(
-                                      color: AppColors.border, width: 1.5),
+                                      color: c.border, width: 1.5),
                                 ),
                                 child: Column(
                                   crossAxisAlignment:
@@ -330,7 +332,7 @@ class _PostFoodScreenState extends State<PostFoodScreen> {
                                         style: GoogleFonts.dmSans(
                                             fontSize: 10,
                                             fontWeight: FontWeight.w700,
-                                            color: AppColors.muted,
+                                            color: c.muted,
                                             letterSpacing: 0.8)),
                                     const SizedBox(height: 10),
                                     Row(
@@ -347,7 +349,7 @@ class _PostFoodScreenState extends State<PostFoodScreen> {
                                                 fontSize: 22,
                                                 fontWeight:
                                                     FontWeight.w800,
-                                                color: AppColors.dark)),
+                                                color: c.text)),
                                         _stepBtn(Icons.add, () {
                                           setState(() => _qty++);
                                         }),
@@ -365,10 +367,10 @@ class _PostFoodScreenState extends State<PostFoodScreen> {
                                 child: Container(
                                   padding: const EdgeInsets.all(14),
                                   decoration: BoxDecoration(
-                                    color: AppColors.card,
+                                    color: c.card,
                                     borderRadius: BorderRadius.circular(14),
                                     border: Border.all(
-                                        color: AppColors.border,
+                                        color: c.border,
                                         width: 1.5),
                                   ),
                                   child: Column(
@@ -379,7 +381,7 @@ class _PostFoodScreenState extends State<PostFoodScreen> {
                                           style: GoogleFonts.dmSans(
                                               fontSize: 10,
                                               fontWeight: FontWeight.w700,
-                                              color: AppColors.muted,
+                                              color: c.muted,
                                               letterSpacing: 0.8)),
                                       const SizedBox(height: 10),
                                       Row(
@@ -400,7 +402,7 @@ class _PostFoodScreenState extends State<PostFoodScreen> {
                                                     fontSize: 20,
                                                     fontWeight:
                                                         FontWeight.w700,
-                                                    color: AppColors.dark),
+                                                    color: c.text),
                                               ),
                                               Text(
                                                 _expiryTime.hour >= 12
@@ -410,7 +412,7 @@ class _PostFoodScreenState extends State<PostFoodScreen> {
                                                     fontSize: 12,
                                                     fontWeight:
                                                         FontWeight.w600,
-                                                    color: AppColors.muted),
+                                                    color: c.muted),
                                               ),
                                             ],
                                           ),
@@ -570,8 +572,8 @@ class _PostFoodScreenState extends State<PostFoodScreen> {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      AppColors.background.withOpacity(0),
-                      AppColors.background,
+                      c.background.withOpacity(0),
+                      c.background,
                     ],
                   ),
                 ),
@@ -621,7 +623,7 @@ class _PostFoodScreenState extends State<PostFoodScreen> {
             // Success overlay
             if (_submitted)
               Container(
-                color: AppColors.card,
+                color: c.card,
                 padding: const EdgeInsets.all(32),
                 alignment: Alignment.center,
                 child: Column(
@@ -652,13 +654,13 @@ class _PostFoodScreenState extends State<PostFoodScreen> {
                         style: GoogleFonts.sora(
                             fontSize: 26,
                             fontWeight: FontWeight.w800,
-                            color: AppColors.dark)),
+                            color: c.text)),
                     const SizedBox(height: 8),
                     Text(
                       'Your listing is now live and visible to receivers nearby. Thank you for making a difference!',
                       style: GoogleFonts.dmSans(
                           fontSize: 14,
-                          color: AppColors.muted,
+                          color: c.muted,
                           height: 1.6),
                       textAlign: TextAlign.center,
                     ),
@@ -709,12 +711,12 @@ class _PostFoodScreenState extends State<PostFoodScreen> {
             style: GoogleFonts.sora(
               fontSize: 13,
               fontWeight: FontWeight.w700,
-              color: AppColors.muted,
+              color: c.muted,
               letterSpacing: 0.7,
             ),
           ),
           const SizedBox(width: 8),
-          const Expanded(child: Divider(color: AppColors.border)),
+          Expanded(child: Divider(color: c.border)),
         ],
       );
 
@@ -724,11 +726,11 @@ class _PostFoodScreenState extends State<PostFoodScreen> {
           width: 32,
           height: 32,
           decoration: BoxDecoration(
-            color: AppColors.background,
+            color: c.background,
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: AppColors.border, width: 1.5),
+            border: Border.all(color: c.border, width: 1.5),
           ),
-          child: Icon(icon, size: 16, color: AppColors.dark),
+          child: Icon(icon, size: 16, color: c.text),
         ),
       );
 
@@ -737,7 +739,7 @@ class _PostFoodScreenState extends State<PostFoodScreen> {
           margin: const EdgeInsets.symmetric(horizontal: 6),
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: const Color(0xFFF8FAFC),
+            color: c.elevated,
             borderRadius: BorderRadius.circular(14),
           ),
           child: Column(
@@ -746,11 +748,11 @@ class _PostFoodScreenState extends State<PostFoodScreen> {
                   style: GoogleFonts.sora(
                       fontSize: 20,
                       fontWeight: FontWeight.w800,
-                      color: AppColors.dark)),
+                      color: c.text)),
               const SizedBox(height: 2),
               Text(label,
                   style: GoogleFonts.dmSans(
-                      fontSize: 11, color: AppColors.muted)),
+                      fontSize: 11, color: c.muted)),
             ],
           ),
         ),

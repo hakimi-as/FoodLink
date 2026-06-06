@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
@@ -37,6 +37,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
 
   @override
   Widget build(BuildContext context) {
+    final c = context.clr;
     final food = context.watch<FoodProvider>();
     final claim = context.watch<ClaimProvider>();
 
@@ -138,11 +139,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
             ),
             // Tabs
             Container(
-              color: AppColors.card,
+              color: c.card,
               child: TabBar(
                 controller: _tabs,
                 labelColor: AppColors.primary,
-                unselectedLabelColor: AppColors.muted,
+                unselectedLabelColor: c.muted,
                 indicatorColor: AppColors.primary,
                 indicatorWeight: 2.5,
                 labelStyle: GoogleFonts.dmSans(
@@ -160,7 +161,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
             ),
             // Search
             Container(
-              color: AppColors.card,
+              color: c.card,
               padding:
                   const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               child: Row(
@@ -170,10 +171,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                       height: 40,
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF8FAFC),
+                        color: c.elevated,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                            color: AppColors.border, width: 1.5),
+                            color: c.border, width: 1.5),
                       ),
                       child: Row(
                         children: [
@@ -185,7 +186,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                               onChanged: (v) =>
                                   setState(() => _search = v.toLowerCase()),
                               style: GoogleFonts.dmSans(
-                                  fontSize: 14, color: AppColors.dark),
+                                  fontSize: 14, color: c.text),
                               decoration: InputDecoration(
                                 hintText: 'Search...',
                                 hintStyle: GoogleFonts.dmSans(
@@ -206,18 +207,18 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFC),
+                      color: c.elevated,
                       borderRadius: BorderRadius.circular(12),
                       border:
-                          Border.all(color: AppColors.border, width: 1.5),
+                          Border.all(color: c.border, width: 1.5),
                     ),
-                    child: const Icon(Icons.sort,
-                        color: AppColors.muted, size: 16),
+                    child: Icon(Icons.sort,
+                        color: c.muted, size: 16),
                   ),
                 ],
               ),
             ),
-            const Divider(height: 1, color: AppColors.border),
+            Divider(height: 1, color: c.border),
             Expanded(
               child: TabBarView(
                 controller: _tabs,
@@ -320,6 +321,7 @@ class _UserRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.clr;
     Color roleBg, roleText;
     String roleLabel;
     IconData roleIcon;
@@ -348,7 +350,7 @@ class _UserRow extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: c.card,
         borderRadius: BorderRadius.circular(16),
         boxShadow: const [
           BoxShadow(
@@ -383,10 +385,10 @@ class _UserRow extends StatelessWidget {
                     style: GoogleFonts.dmSans(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.dark)),
+                        color: c.text)),
                 Text(user.email,
                     style: GoogleFonts.dmSans(
-                        fontSize: 11.5, color: AppColors.muted)),
+                        fontSize: 11.5, color: c.muted)),
                 const SizedBox(height: 5),
                 Row(
                   children: [
@@ -442,6 +444,7 @@ class _FoodTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.clr;
     final filtered = items
         .where((i) =>
             search.isEmpty ||
@@ -479,6 +482,7 @@ class _FoodRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.clr;
     Color statusBg, statusText, statusDot;
     String statusLabel;
 
@@ -503,7 +507,7 @@ class _FoodRow extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: c.card,
         borderRadius: BorderRadius.circular(16),
         boxShadow: const [
           BoxShadow(
@@ -531,10 +535,10 @@ class _FoodRow extends StatelessWidget {
                     style: GoogleFonts.dmSans(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.dark)),
+                        color: c.text)),
                 Text('By ${item.donorName}',
                     style: GoogleFonts.dmSans(
-                        fontSize: 11.5, color: AppColors.muted)),
+                        fontSize: 11.5, color: c.muted)),
                 const SizedBox(height: 5),
                 Row(
                   children: [
@@ -566,7 +570,7 @@ class _FoodRow extends StatelessWidget {
                     Text(
                       '${item.quantity} portions',
                       style: GoogleFonts.dmSans(
-                          fontSize: 10.5, color: const Color(0xFF94A3B8)),
+                          fontSize: 10.5, color: c.muted),
                     ),
                   ],
                 ),
@@ -612,21 +616,24 @@ class _ClaimRow extends StatelessWidget {
   const _ClaimRow({required this.claim, required this.index});
 
   @override
-  Widget build(BuildContext context) => Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: const [
-            BoxShadow(
-                color: Color(0x07000000),
-                blurRadius: 3,
-                offset: Offset(0, 1))
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+  Widget build(BuildContext context) {
+    final c = context.clr;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: c.card,
+        borderRadius: BorderRadius.circular(16),
+        border: c.isDark ? Border.all(color: c.border, width: 1) : null,
+        boxShadow: c.isDark ? null : const [
+          BoxShadow(
+              color: Color(0x07000000),
+              blurRadius: 3,
+              offset: Offset(0, 1))
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
@@ -650,7 +657,7 @@ class _ClaimRow extends StatelessWidget {
                       style: GoogleFonts.dmSans(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.dark)),
+                          color: c.text)),
                 ),
               ],
             ),
@@ -676,7 +683,8 @@ class _ClaimRow extends StatelessWidget {
             ),
           ],
         ),
-      );
+    );
+  }
 }
 
 class _KV extends StatelessWidget {
@@ -685,31 +693,34 @@ class _KV extends StatelessWidget {
   const _KV(this.key2, this.value, {this.valueColor});
 
   @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF8FAFC),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(key2.toUpperCase(),
-                style: GoogleFonts.dmSans(
-                    fontSize: 9.5,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF94A3B8),
-                    letterSpacing: 0.5)),
-            Text(value,
-                style: GoogleFonts.dmSans(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: valueColor ?? AppColors.dark),
-                overflow: TextOverflow.ellipsis),
-          ],
-        ),
-      );
+  Widget build(BuildContext context) {
+    final c = context.clr;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: c.elevated,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(key2.toUpperCase(),
+              style: GoogleFonts.dmSans(
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w700,
+                  color: c.muted,
+                  letterSpacing: 0.5)),
+          Text(value,
+              style: GoogleFonts.dmSans(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: valueColor ?? c.text),
+              overflow: TextOverflow.ellipsis),
+        ],
+      ),
+    );
+  }
 }
 
 // ── Delete confirmation dialog ────────────────────────────────────────────
@@ -722,54 +733,56 @@ class _DeleteDialog extends StatelessWidget {
       required this.onConfirm});
 
   @override
-  Widget build(BuildContext context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                    color: AppColors.redLight,
-                    borderRadius: BorderRadius.circular(20)),
-                child: const Text('🗑️',
-                    style: TextStyle(fontSize: 28),
-                    textAlign: TextAlign.center),
-              ),
-              const SizedBox(height: 16),
-              Text(title,
-                  style: GoogleFonts.sora(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.dark)),
-              const SizedBox(height: 8),
-              Text(subtitle,
-                  style: GoogleFonts.dmSans(
-                      fontSize: 13,
-                      color: AppColors.muted,
-                      height: 1.5),
+  Widget build(BuildContext context) {
+    final c = context.clr;
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                  color: AppColors.redLight,
+                  borderRadius: BorderRadius.circular(20)),
+              child: const Text('🗑️',
+                  style: TextStyle(fontSize: 28),
                   textAlign: TextAlign.center),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: TextButton.styleFrom(
-                        backgroundColor: const Color(0xFFF1F5F9),
-                        minimumSize: const Size(0, 44),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                      ),
-                      child: Text('Cancel',
-                          style: GoogleFonts.dmSans(
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.muted)),
+            ),
+            const SizedBox(height: 16),
+            Text(title,
+                style: GoogleFonts.sora(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: c.text)),
+            const SizedBox(height: 8),
+            Text(subtitle,
+                style: GoogleFonts.dmSans(
+                    fontSize: 13,
+                    color: c.muted,
+                    height: 1.5),
+                textAlign: TextAlign.center),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: TextButton.styleFrom(
+                      backgroundColor: c.elevated,
+                      minimumSize: const Size(0, 44),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
+                    child: Text('Cancel',
+                        style: GoogleFonts.dmSans(
+                            fontWeight: FontWeight.w600,
+                            color: c.muted)),
                   ),
+                ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: TextButton(
@@ -795,4 +808,5 @@ class _DeleteDialog extends StatelessWidget {
           ),
         ),
       );
+  }
 }
