@@ -5,11 +5,14 @@ import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/routes/app_route.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/claim_provider.dart';
 import '../../providers/food_provider.dart';
+import '../../providers/stats_provider.dart';
 import '../../widgets/food_card.dart';
 import '../../widgets/claim_modal.dart';
 import '../../widgets/skeleton_food_card.dart';
 import '../../widgets/app_empty_state.dart';
+import '../../widgets/filter_sheet.dart';
 import '../secondary/notifications_screen.dart';
 
 class FeedScreen extends StatelessWidget {
@@ -22,6 +25,16 @@ class FeedScreen extends StatelessWidget {
     final c = context.clr;
     final auth = context.watch<AuthProvider>();
     final food = context.watch<FoodProvider>();
+    final claim = context.watch<ClaimProvider>();
+    final stats = context.watch<StatsProvider>();
+    final user = auth.user;
+    final unreadCount = user == null
+        ? 0
+        : user.isDonor
+            ? claim.donorClaims.where((c) => c.isPending).length
+            : user.isStudent
+                ? claim.myClaims.where((c) => c.isPending).length
+                : 0;
     final hour = DateTime.now().hour;
     final greeting = hour < 12
         ? 'Good morning 👋'
@@ -92,20 +105,28 @@ class FeedScreen extends StatelessWidget {
                             children: [
                               Icon(Icons.notifications_none,
                                   size: 18, color: c.bodyText),
-                              Positioned(
-                                top: 8,
-                                right: 8,
-                                child: Container(
-                                  width: 8,
-                                  height: 8,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.primary,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                        color: c.card, width: 1.5),
+                              if (unreadCount > 0)
+                                Positioned(
+                                  top: 6,
+                                  right: 6,
+                                  child: Container(
+                                    width: unreadCount > 9 ? 16 : 14,
+                                    height: 14,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFEF4444),
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: c.card, width: 1.5),
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      unreadCount > 9 ? '9+' : '$unreadCount',
+                                      style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 7,
+                                          fontWeight: FontWeight.w800),
+                                    ),
                                   ),
                                 ),
-                              ),
                             ],
                           ),
                         ),
@@ -139,7 +160,14 @@ class FeedScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 12),
+                  // ── Impact strip
+                  _ImpactStrip(
+                    meals: stats.mealsClaimed,
+                    kgSaved: stats.kgSaved,
+                    co2: stats.co2Saved,
+                  ),
+                  const SizedBox(height: 12),
                   // ── Search bar
                   Container(
                     height: 48,
@@ -171,16 +199,60 @@ class FeedScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-                        Container(
-                          width: 32,
-                          height: 32,
-                          margin: const EdgeInsets.only(right: 8),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            borderRadius: BorderRadius.circular(10),
+                        GestureDetector(
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            FilterSheet.show(
+                              context,
+                              initialFilter: food.filter,
+                              onApply: food.setFilter,
+                            );
+                          },
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              Container(
+                                width: 32,
+                                height: 32,
+                                margin: const EdgeInsets.only(right: 8),
+                                decoration: BoxDecoration(
+                                  color: food.filter.activeCount > 0
+                                      ? AppColors.primary
+                                      : c.elevated,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: food.filter.activeCount == 0
+                                      ? Border.all(color: c.border, width: 1.5)
+                                      : null,
+                                ),
+                                child: Icon(Icons.tune,
+                                    color: food.filter.activeCount > 0
+                                        ? Colors.white
+                                        : c.muted,
+                                    size: 15),
+                              ),
+                              if (food.filter.activeCount > 0)
+                                Positioned(
+                                  top: -4,
+                                  right: 4,
+                                  child: Container(
+                                    width: 14,
+                                    height: 14,
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFFEF4444),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      '${food.filter.activeCount}',
+                                      style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 8,
+                                          fontWeight: FontWeight.w800),
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ),
-                          child: const Icon(Icons.tune,
-                              color: Colors.white, size: 15),
                         ),
                       ],
                     ),
@@ -407,4 +479,89 @@ class FeedScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+class _ImpactStrip extends StatelessWidget {
+  final int meals;
+  final int kgSaved;
+  final int co2;
+
+  const _ImpactStrip({
+    required this.meals,
+    required this.kgSaved,
+    required this.co2,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFFFF7ED), Color(0xFFFED7AA)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFFBBF24).withOpacity(0.4)),
+      ),
+      child: Row(
+        children: [
+          _StatTile(value: meals, label: 'MEALS', emoji: '🍽️'),
+          _Divider(),
+          _StatTile(value: kgSaved, label: 'KG SAVED', emoji: '⚖️'),
+          _Divider(),
+          _StatTile(value: co2, label: 'CO₂ kg', emoji: '🌱'),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatTile extends StatelessWidget {
+  final int value;
+  final String label;
+  final String emoji;
+  const _StatTile({required this.value, required this.label, required this.emoji});
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Column(
+        children: [
+          TweenAnimationBuilder<int>(
+            tween: IntTween(begin: 0, end: value),
+            duration: const Duration(milliseconds: 800),
+            curve: Curves.easeOut,
+            builder: (_, v, __) => Text(
+              '$v',
+              style: GoogleFonts.sora(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: const Color(0xFFC2410C)),
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            '$emoji $label',
+            style: GoogleFonts.dmSans(
+                fontSize: 9,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFFEA580C),
+                letterSpacing: 0.3),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Divider extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => Container(
+        width: 1,
+        height: 30,
+        color: const Color(0xFFFBBF24).withOpacity(0.5),
+        margin: const EdgeInsets.symmetric(horizontal: 6),
+      );
 }
