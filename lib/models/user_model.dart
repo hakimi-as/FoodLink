@@ -8,6 +8,8 @@ class UserModel {
   final String phone;
   final String role;
   final String? photoUrl;
+  final double? avgRating;
+  final int ratingCount;
   final DateTime createdAt;
 
   const UserModel({
@@ -17,6 +19,8 @@ class UserModel {
     required this.phone,
     required this.role,
     this.photoUrl,
+    this.avgRating,
+    this.ratingCount = 0,
     required this.createdAt,
   });
 
@@ -31,6 +35,8 @@ class UserModel {
         phone: (map['phone'] as String?) ?? '',
         role: map['role'] as String,
         photoUrl: map['photoUrl'] as String?,
+        avgRating: (map['avgRating'] as num?)?.toDouble(),
+        ratingCount: (map['ratingCount'] as num?)?.toInt() ?? 0,
         createdAt: map['createdAt'] is Timestamp
             ? (map['createdAt'] as Timestamp).toDate()
             : DateTime.now(),
@@ -50,6 +56,8 @@ class UserModel {
     String? name,
     String? phone,
     String? photoUrl,
+    double? avgRating,
+    int? ratingCount,
   }) =>
       UserModel(
         uid: uid,
@@ -58,6 +66,8 @@ class UserModel {
         phone: phone ?? this.phone,
         role: role,
         photoUrl: photoUrl ?? this.photoUrl,
+        avgRating: avgRating ?? this.avgRating,
+        ratingCount: ratingCount ?? this.ratingCount,
         createdAt: createdAt,
       );
 }

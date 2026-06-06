@@ -2,10 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
+import 'package:flutter/services.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/claim_provider.dart';
 import '../../providers/food_provider.dart';
+import '../../providers/rating_provider.dart';
 import '../../widgets/status_pill.dart';
 import '../../widgets/app_empty_state.dart';
+import '../../widgets/rating_sheet.dart';
 import '../../models/claim_model.dart';
 import '../../models/food_item_model.dart';
 
@@ -118,10 +122,10 @@ class _ClaimsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.clr;
     final total = claims.length;
     final completed = claims.where((c) => c.isCompleted).length;
     final pending = claims.where((c) => c.isPending).length;
+    final auth = context.read<AuthProvider>();
 
     return ListView(
       padding: const EdgeInsets.all(18),
@@ -145,16 +149,98 @@ class _ClaimsTab extends StatelessWidget {
             subtitle: 'Start claiming food from the feed!',
           )
         else
-          ...claims.map((c) => _HistoryCard(
-                emoji: '🍛',
-                title: c.itemTitle,
-                subtitle:
-                    '${_formatDate(c.timestamp)} · ${c.quantity} portions',
-                pill: c.isPending ? PillType.pending : PillType.completed,
-                rightTop: c.isPending ? 'Pending' : 'Completed',
-                rightBottom: 'Donated',
+          ...claims.map((c) => _ClaimHistoryCard(
+                claim: c,
+                studentId: auth.user?.uid ?? '',
               )),
       ],
+    );
+  }
+}
+
+class _ClaimHistoryCard extends StatefulWidget {
+  final ClaimModel claim;
+  final String studentId;
+  const _ClaimHistoryCard({required this.claim, required this.studentId});
+
+  @override
+  State<_ClaimHistoryCard> createState() => _ClaimHistoryCardState();
+}
+
+class _ClaimHistoryCardState extends State<_ClaimHistoryCard> {
+  bool? _hasRated;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.claim.isCompleted) {
+      context
+          .read<RatingProvider>()
+          .hasRated(widget.claim.claimId, widget.studentId)
+          .then((v) {
+        if (mounted) setState(() => _hasRated = v);
+      });
+    }
+  }
+
+  void _openRating() {
+    HapticFeedback.selectionClick();
+    RatingSheet.show(
+      context,
+      donorId: widget.claim.donorId,
+      donorName: widget.claim.donorName,
+      studentId: widget.studentId,
+      claimId: widget.claim.claimId,
+      itemTitle: widget.claim.itemTitle,
+      onSubmitted: () => setState(() => _hasRated = true),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = widget.claim;
+    final canRate =
+        c.isCompleted && (_hasRated == false);
+    return _HistoryCard(
+      emoji: '🍛',
+      title: c.itemTitle,
+      subtitle: '${_formatDate(c.timestamp)} · ${c.quantity} portions',
+      pill: c.isPending ? PillType.pending : PillType.completed,
+      rightTop: c.isPending ? 'Pending' : 'Completed',
+      rightBottom: c.isPending ? 'Pickup Soon' : 'Done',
+      rateButton: canRate
+          ? GestureDetector(
+              onTap: _openRating,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryLight,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('⭐',
+                        style: TextStyle(fontSize: 11)),
+                    const SizedBox(width: 4),
+                    Text('Rate',
+                        style: GoogleFonts.dmSans(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.primary)),
+                  ],
+                ),
+              ),
+            )
+          : (_hasRated == true
+              ? Text('Rated ✓',
+                  style: GoogleFonts.dmSans(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.greenDark))
+              : null),
     );
   }
 }
@@ -261,6 +347,7 @@ class _SummaryStrip extends StatelessWidget {
 class _HistoryCard extends StatelessWidget {
   final String emoji, title, subtitle, rightTop, rightBottom;
   final PillType pill;
+  final Widget? rateButton;
   const _HistoryCard({
     required this.emoji,
     required this.title,
@@ -268,6 +355,7 @@ class _HistoryCard extends StatelessWidget {
     required this.pill,
     required this.rightTop,
     required this.rightBottom,
+    this.rateButton,
   });
 
   @override
@@ -336,6 +424,10 @@ class _HistoryCard extends StatelessWidget {
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
                       color: c.text)),
+              if (rateButton != null) ...[
+                const SizedBox(height: 6),
+                rateButton!,
+              ],
             ],
           ),
         ],
