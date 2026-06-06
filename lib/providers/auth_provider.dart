@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
+import '../services/notification_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   final AuthService _service = AuthService();
@@ -32,6 +33,7 @@ class AuthProvider extends ChangeNotifier {
     try {
       _user = await _service.signInWithEmail(email, password);
       notifyListeners();
+      NotificationService.instance.saveTokenToFirestore(_user!.uid);
       return true;
     } catch (e) {
       _setError(_friendlyError(e));
@@ -59,6 +61,7 @@ class AuthProvider extends ChangeNotifier {
         role: role,
       );
       notifyListeners();
+      NotificationService.instance.saveTokenToFirestore(_user!.uid);
       return true;
     } catch (e) {
       _setError(_friendlyError(e));
@@ -74,8 +77,14 @@ class AuthProvider extends ChangeNotifier {
     try {
       _user = await _service.signInWithGoogle();
       notifyListeners();
+      NotificationService.instance.saveTokenToFirestore(_user!.uid);
       return true;
     } catch (e) {
+      final msg = e.toString();
+      // User deliberately closed the popup — not an error worth surfacing
+      if (msg.contains('popup_closed') || msg.contains('popup-closed-by-user')) {
+        return false;
+      }
       _setError(_friendlyError(e));
       return false;
     } finally {
@@ -97,14 +106,48 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<bool> updateProfile({required String name, required String phone}) async {
+    if (_user == null) return false;
+    _setLoading(true);
+    try {
+      await _service.updateUserProfile(_user!.uid, name: name, phone: phone);
+      _user = _user!.copyWith(name: name, phone: phone);
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _setError(_friendlyError(e));
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<bool> updatePhoto(String photoUrl) async {
+    if (_user == null) return false;
+    try {
+      await _service.updateUserPhoto(_user!.uid, photoUrl);
+      _user = _user!.copyWith(photoUrl: photoUrl);
+      notifyListeners();
+      return true;
+    } catch (e) {
+      debugPrint('[AuthProvider] updatePhoto error: $e');
+      return false;
+    }
+  }
+
   String _friendlyError(Object e) {
     final msg = e.toString();
     if (msg.contains('user-not-found')) return 'No account found with this email.';
-    if (msg.contains('wrong-password')) return 'Incorrect password.';
+    if (msg.contains('wrong-password') || msg.contains('invalid-credential')) return 'Incorrect email or password.';
     if (msg.contains('email-already-in-use')) return 'This email is already registered.';
     if (msg.contains('weak-password')) return 'Password is too weak (min 6 chars).';
     if (msg.contains('invalid-email')) return 'Please enter a valid email address.';
+    if (msg.contains('operation-not-allowed')) return 'Email sign-in is not enabled. Contact support.';
+    if (msg.contains('network-request-failed')) return 'No internet connection. Please try again.';
+    if (msg.contains('too-many-requests')) return 'Too many attempts. Please wait and try again.';
     if (msg.contains('cancelled')) return 'Sign-in was cancelled.';
+    // Surface the raw Firebase error code during development so it's not swallowed
+    debugPrint('[AuthProvider] Unhandled error: $e');
     return 'Something went wrong. Please try again.';
   }
 }
