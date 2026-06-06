@@ -24,6 +24,14 @@ class NotificationService {
   );
 
   Future<void> init() async {
+    try {
+      await _initInternal();
+    } catch (e) {
+      debugPrint('[FCM] Notification setup failed (continuing without it): $e');
+    }
+  }
+
+  Future<void> _initInternal() async {
     // Register background handler
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
@@ -60,7 +68,14 @@ class NotificationService {
     );
   }
 
-  Future<String?> getToken() => _messaging.getToken();
+  Future<String?> getToken() async {
+    try {
+      return await _messaging.getToken();
+    } catch (e) {
+      debugPrint('[FCM] Failed to get token: $e');
+      return null;
+    }
+  }
 
   Future<void> saveTokenToFirestore(String uid) async {
     final token = await getToken();
