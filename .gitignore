@@ -46,3 +46,9 @@ app.*.map.json
 
 # Superpowers brainstorm visual-companion scratch space
 .superpowers/
+
+# Firebase secrets (generate via FlutterFire CLI: flutterfire configure)
+lib/firebase_options.dart
+
+# Internal planning docs
+docs/superpowers/
