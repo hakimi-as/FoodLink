@@ -574,11 +574,13 @@ body{font-family:'DM Sans',sans-serif;color:var(--tx)}
       <div class="avatar-btn" id="feed-avatar" onclick="populateProfile();go('sc-profile')">MH</div>
     </div>
     <div class="impact-strip">
-      <div class="impact-stat"><div class="impact-val">142</div><div class="impact-lbl">🍽️ MEALS</div></div>
+      <div class="impact-stat"><div class="impact-val" style="font-size:15px">142</div><div class="impact-lbl">🍽️ MEALS</div></div>
       <div class="impact-div"></div>
-      <div class="impact-stat"><div class="impact-val">89</div><div class="impact-lbl">⚖️ KG SAVED</div></div>
+      <div class="impact-stat"><div class="impact-val" style="font-size:15px">89</div><div class="impact-lbl">⚖️ KG SAVED</div></div>
       <div class="impact-div"></div>
-      <div class="impact-stat"><div class="impact-val">43</div><div class="impact-lbl">🌱 CO₂ kg</div></div>
+      <div class="impact-stat"><div class="impact-val" style="font-size:15px">43</div><div class="impact-lbl">🌱 CO₂ kg</div></div>
+      <div class="impact-div"></div>
+      <div class="impact-stat" onclick="toast('1 CR = 1kg CO₂ offset. Sell credits to corporate partners via FoodLink Pro.')" style="cursor:pointer"><div class="impact-val" style="font-size:15px;color:#7C3AED">21</div><div class="impact-lbl">🌿 CARBON CR</div></div>
     </div>
     <div class="search-bar" style="margin-top:12px">
       <span style="font-size:16px;color:var(--hi)">🔍</span>
@@ -845,21 +847,27 @@ body{font-family:'DM Sans',sans-serif;color:var(--tx)}
     <div style="margin:-44px 20px 0;position:relative;z-index:2;margin-bottom:20px">
       <div class="prof-stats-card">
         <div class="prof-stat">
-          <div class="prof-stat-ico">🍛</div>
-          <div class="prof-stat-val" id="prof-stat-donated" style="color:var(--p)">0</div>
+          <div class="prof-stat-ico" style="font-size:15px">🍛</div>
+          <div class="prof-stat-val" id="prof-stat-donated" style="color:var(--p);font-size:18px">0</div>
           <div class="prof-stat-lbl">Donated</div>
         </div>
         <div class="prof-div"></div>
         <div class="prof-stat">
-          <div class="prof-stat-ico">🤲</div>
-          <div class="prof-stat-val" id="prof-stat-claimed" style="color:var(--gd)">3</div>
+          <div class="prof-stat-ico" style="font-size:15px">🤲</div>
+          <div class="prof-stat-val" id="prof-stat-claimed" style="color:var(--gd);font-size:18px">3</div>
           <div class="prof-stat-lbl">Claimed</div>
         </div>
         <div class="prof-div"></div>
         <div class="prof-stat">
-          <div class="prof-stat-ico">🌿</div>
-          <div class="prof-stat-val" id="prof-stat-saved" style="color:#7C3AED">6kg</div>
+          <div class="prof-stat-ico" style="font-size:15px">🌿</div>
+          <div class="prof-stat-val" id="prof-stat-saved" style="color:#7C3AED;font-size:18px">6kg</div>
           <div class="prof-stat-lbl">Saved</div>
+        </div>
+        <div class="prof-div"></div>
+        <div class="prof-stat" onclick="toast('Your 21 credits ≈ RM 63. Redeem via FoodLink Pro.')" style="cursor:pointer">
+          <div class="prof-stat-ico" style="font-size:15px">🌱</div>
+          <div class="prof-stat-val" id="prof-stat-credits" style="color:#7C3AED;font-size:18px">21</div>
+          <div class="prof-stat-lbl">Credits</div>
         </div>
       </div>
     </div>
