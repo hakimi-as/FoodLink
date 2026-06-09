@@ -1160,6 +1160,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--tx)}
     <button class="tab-btn active" data-tab="users" onclick="switchAdminTab('users')">Users</button>
     <button class="tab-btn" data-tab="food" onclick="switchAdminTab('food')">Food</button>
     <button class="tab-btn" data-tab="claims" onclick="switchAdminTab('claims')">Claims</button>
+    <button class="tab-btn" data-tab="pro" onclick="switchAdminTab('pro')" style="color:var(--p)">📊 Pro</button>
   </div>
   <div class="sa" style="padding:14px 22px 40px">
     <div id="admin-panel-users">
@@ -1179,6 +1180,62 @@ body{font-family:'DM Sans',sans-serif;color:var(--tx)}
       <div class="admin-row"><div class="admin-row-avatar" style="background:linear-gradient(135deg,var(--g),var(--gd))">MH</div><div class="admin-row-info"><div class="admin-row-name">Nasi Lemak · 2 portions</div><div class="admin-row-sub">Mohamad Hakimi · Today 10:30</div></div><span class="role-badge" style="background:#DCFCE7;color:#16A34A">DONE</span></div>
       <div class="admin-row"><div class="admin-row-avatar" style="background:linear-gradient(135deg,#A855F7,#7C3AED)">SR</div><div class="admin-row-info"><div class="admin-row-name">Curry Puff · 3 portions</div><div class="admin-row-sub">Siti Rahayu · Today 11:45</div></div><span class="role-badge" style="background:#FFF7ED;color:#C2410C">PENDING</span></div>
       <div class="admin-row"><div class="admin-row-avatar" style="background:linear-gradient(135deg,#F59E0B,#D97706)">AH</div><div class="admin-row-info"><div class="admin-row-name">Roti Canai · 1 portion</div><div class="admin-row-sub">Ahmad Hafiz · Yesterday</div></div><span class="role-badge" style="background:#DCFCE7;color:#16A34A">DONE</span></div>
+    </div>
+    <div id="admin-panel-pro" style="display:none">
+      <!-- Bar chart -->
+      <div style="background:var(--card);border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+        <div style="font-family:'Sora',sans-serif;font-size:14px;font-weight:700;color:var(--tx);margin-bottom:4px">Food Saved This Week</div>
+        <div style="font-size:11px;color:var(--mu);margin-bottom:8px">Meals rescued per day</div>
+        <div class="pro-bar-chart">
+          <div class="pro-bar-col"><div class="pro-bar-val">8</div><div class="pro-bar" style="height:26%"></div><div class="pro-bar-day">Mon</div></div>
+          <div class="pro-bar-col"><div class="pro-bar-val">14</div><div class="pro-bar" style="height:45%"></div><div class="pro-bar-day">Tue</div></div>
+          <div class="pro-bar-col"><div class="pro-bar-val">22</div><div class="pro-bar" style="height:71%"></div><div class="pro-bar-day">Wed</div></div>
+          <div class="pro-bar-col"><div class="pro-bar-val">16</div><div class="pro-bar" style="height:52%"></div><div class="pro-bar-day">Thu</div></div>
+          <div class="pro-bar-col"><div class="pro-bar-val">31</div><div class="pro-bar" style="height:100%"></div><div class="pro-bar-day">Fri</div></div>
+          <div class="pro-bar-col"><div class="pro-bar-val">9</div><div class="pro-bar" style="height:29%"></div><div class="pro-bar-day">Sat</div></div>
+          <div class="pro-bar-col"><div class="pro-bar-val">18</div><div class="pro-bar" style="height:58%"></div><div class="pro-bar-day">Sun</div></div>
+        </div>
+      </div>
+      <!-- Donut + Legend -->
+      <div style="background:var(--card);border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+        <div style="font-family:'Sora',sans-serif;font-size:14px;font-weight:700;color:var(--tx);margin-bottom:12px">Food Type Breakdown</div>
+        <div style="display:flex;align-items:center;gap:16px">
+          <div class="pro-donut" style="background:conic-gradient(#F05A28 0% 42%,#F97316 42% 70%,#3B82F6 70% 88%,#94A3B8 88% 100%)"></div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;gap:8px"><div class="pro-legend-dot" style="background:#F05A28"></div><div style="font-size:12px;color:var(--tx);flex:1">🍚 Rice Dishes</div><div style="font-size:12px;font-weight:700;color:var(--tx)">42%</div></div>
+            <div style="display:flex;align-items:center;gap:8px"><div class="pro-legend-dot" style="background:#F97316"></div><div style="font-size:12px;color:var(--tx);flex:1">🍞 Bread/Pastry</div><div style="font-size:12px;font-weight:700;color:var(--tx)">28%</div></div>
+            <div style="display:flex;align-items:center;gap:8px"><div class="pro-legend-dot" style="background:#3B82F6"></div><div style="font-size:12px;color:var(--tx);flex:1">🧃 Beverages</div><div style="font-size:12px;font-weight:700;color:var(--tx)">18%</div></div>
+            <div style="display:flex;align-items:center;gap:8px"><div class="pro-legend-dot" style="background:#94A3B8"></div><div style="font-size:12px;color:var(--tx);flex:1">Other</div><div style="font-size:12px;font-weight:700;color:var(--tx)">12%</div></div>
+          </div>
+        </div>
+      </div>
+      <!-- Campus Impact Summary -->
+      <div style="background:var(--card);border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+        <div style="font-family:'Sora',sans-serif;font-size:14px;font-weight:700;color:var(--tx);margin-bottom:12px">Campus Impact Summary</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div style="background:var(--el);border-radius:12px;padding:12px;text-align:center"><div style="font-family:'Sora',sans-serif;font-size:22px;font-weight:800;color:var(--tx)">312</div><div style="font-size:10.5px;color:var(--mu);font-weight:600">👥 Total Users</div></div>
+          <div style="background:var(--el);border-radius:12px;padding:12px;text-align:center"><div style="font-family:'Sora',sans-serif;font-size:22px;font-weight:800;color:var(--tx)">48</div><div style="font-size:10.5px;color:var(--mu);font-weight:600">🏪 Active Donors</div></div>
+          <div style="background:var(--el);border-radius:12px;padding:12px;text-align:center"><div style="font-family:'Sora',sans-serif;font-size:22px;font-weight:800;color:var(--g)">12 min</div><div style="font-size:10.5px;color:var(--mu);font-weight:600">⚡ Avg Claim Time</div></div>
+          <div style="background:var(--el);border-radius:12px;padding:12px;text-align:center"><div style="font-family:'Sora',sans-serif;font-size:22px;font-weight:800;color:var(--g)">↓ 23%</div><div style="font-size:10.5px;color:var(--mu);font-weight:600">🌱 Waste vs Last Mo</div></div>
+        </div>
+      </div>
+      <!-- Partner Cafeterias -->
+      <div style="background:var(--card);border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div style="font-family:'Sora',sans-serif;font-size:14px;font-weight:700;color:var(--tx)">Partner Cafeterias</div>
+          <button onclick="toast('Partnership request sent! Our team will contact you.')" style="background:var(--p);border:none;border-radius:10px;padding:6px 12px;color:#fff;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;cursor:pointer">+ Add Partner</button>
+        </div>
+        <div class="admin-row"><div style="font-size:22px">🏪</div><div class="admin-row-info"><div class="admin-row-name">Pak Ali's Café</div><div class="admin-row-sub">Kulliyyah A · 48 meals donated</div></div><span class="role-badge" style="background:#DCFCE7;color:#16A34A">● Active</span></div>
+        <div class="admin-row"><div style="font-size:22px">🍽️</div><div class="admin-row-info"><div class="admin-row-name">Main Cafeteria IIUM</div><div class="admin-row-sub">Central · 124 meals donated</div></div><span class="role-badge" style="background:#DCFCE7;color:#16A34A">● Active</span></div>
+        <div class="admin-row" style="margin-bottom:0"><div style="font-size:22px">☕</div><div class="admin-row-info"><div class="admin-row-name">Annexe Café</div><div class="admin-row-sub">Library Block · 12 meals donated</div></div><span class="role-badge" style="background:#FFF7ED;color:#C2410C">○ Pending</span></div>
+      </div>
+      <!-- Upgrade banner -->
+      <div style="background:linear-gradient(160deg,#0F172A,#1E293B);border-radius:16px;padding:20px;margin-bottom:8px">
+        <div style="font-size:18px;margin-bottom:8px">🚀</div>
+        <div style="font-family:'Sora',sans-serif;font-size:16px;font-weight:700;color:#fff;margin-bottom:4px">FoodLink Pro — Institution License</div>
+        <div style="font-size:12.5px;color:rgba(255,255,255,.7);margin-bottom:16px;line-height:1.5">RM 299/month · Full analytics · Priority support · Carbon credit marketplace access</div>
+        <button onclick="toast('Our team will contact you within 24 hours. 🚀')" style="background:linear-gradient(135deg,var(--p),var(--p2));border:none;border-radius:12px;padding:12px 24px;color:#fff;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;width:100%">Contact Us →</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1662,7 +1719,7 @@ function toggleDark(){
 function switchAdminTab(tab){
   activeAdminTab=tab;
   document.querySelectorAll('#admin-tabs .tab-btn').forEach(b=>b.className='tab-btn'+(b.dataset.tab===tab?' active':''));
-  ['users','food','claims'].forEach(t=>{
+  ['users','food','claims','pro'].forEach(t=>{
     const p=document.getElementById('admin-panel-'+t);
     if(p)p.style.display=t===tab?'block':'none';
   });
