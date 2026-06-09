@@ -884,10 +884,10 @@ body{font-family:'DM Sans',sans-serif;color:var(--tx)}
         <div class="menu-info"><div class="menu-title">History</div><div class="menu-sub">My claims &amp; donations</div></div>
         <div class="menu-chevron">›</div>
       </div>
-      <div class="menu-item">
+      <div class="menu-item" onclick="go('sc-notif-settings')">
         <div class="menu-icon" style="background:#FAF5FF">🔔</div>
-        <div class="menu-info"><div class="menu-title">Notifications</div><div class="menu-sub">Claims, pickups, alerts</div></div>
-        <div class="menu-toggle"><div class="toggle on" id="notif-toggle" onclick="toggleNotif()"><div class="toggle-knob"></div></div></div>
+        <div class="menu-info"><div class="menu-title">Notifications</div><div class="menu-sub">Radius alerts · WhatsApp · Claims</div></div>
+        <div class="menu-chevron">›</div>
       </div>
       <div class="menu-item">
         <div class="menu-icon" style="background:#F8FAFC">🌙</div>
@@ -1215,6 +1215,75 @@ body{font-family:'DM Sans',sans-serif;color:var(--tx)}
   </div>
   <div style="padding:0 22px 12px;font-size:12px;color:var(--mu);flex-shrink:0">
     🔵 You · 🟠 Notification radius · Tap a pin to claim
+  </div>
+</div>
+<!-- ===================== NOTIF SETTINGS ===================== -->
+<div class="screen" id="sc-notif-settings" style="background:var(--bg)">
+  <div style="background:var(--card);padding:16px 22px 16px;border-bottom:1px solid var(--br);flex-shrink:0">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div class="back-btn" onclick="back('sc-profile')">←</div>
+      <div style="font-family:'Sora',sans-serif;font-size:17px;font-weight:700;color:var(--tx)">Notification Settings</div>
+    </div>
+  </div>
+  <div class="sa" style="padding:20px 22px 40px">
+    <!-- Radius -->
+    <span class="section-label">Alert Radius</span>
+    <div class="radius-pills" id="radius-pills">
+      <button class="radius-pill" data-r="100" onclick="setRadius(100,this)">100m</button>
+      <button class="radius-pill" data-r="250" onclick="setRadius(250,this)">250m</button>
+      <button class="radius-pill active" data-r="500" onclick="setRadius(500,this)">500m</button>
+      <button class="radius-pill" data-r="1000" onclick="setRadius(1000,this)">1km</button>
+      <button class="radius-pill" data-r="2000" onclick="setRadius(2000,this)">2km</button>
+    </div>
+    <div style="font-size:12px;color:var(--mu);margin-bottom:14px" id="radius-desc">You'll be alerted when food appears within 500m of you</div>
+    <!-- Mini map preview -->
+    <div class="mini-map" style="margin-bottom:20px">
+      <div class="mini-map-radius" id="mini-map-radius" style="width:40px;height:40px"></div>
+      <div class="mini-map-dot"></div>
+      <div style="position:absolute;bottom:8px;right:10px;font-size:9px;font-weight:600;color:#7A9070">IIUM Campus</div>
+    </div>
+    <!-- WhatsApp -->
+    <span class="section-label">WhatsApp Alerts</span>
+    <div class="menu-item" style="margin-bottom:10px;cursor:default">
+      <div class="menu-icon" style="background:#DCFCE7;font-size:20px">💬</div>
+      <div class="menu-info"><div class="menu-title">WhatsApp Notifications</div><div class="menu-sub">Instant alerts to your phone</div></div>
+      <div class="menu-toggle"><div class="toggle" id="wa-toggle" onclick="toggleWhatsapp()"><div class="toggle-knob"></div></div></div>
+    </div>
+    <div id="wa-section" style="max-height:0;overflow:hidden;transition:max-height .35s ease">
+      <div class="field" style="margin-bottom:12px">
+        <label>WhatsApp Number</label>
+        <div class="field-wrap"><span class="icon">📱</span><input type="tel" id="wa-phone" placeholder="+60 1X-XXXX XXXX"></div>
+      </div>
+      <!-- Preview bubble -->
+      <div style="background:var(--card);border-radius:16px;padding:14px;margin-bottom:16px;border:1.5px solid var(--br)">
+        <div style="font-size:11px;font-weight:700;color:var(--mu);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">📱 Message Preview</div>
+        <div class="wa-preview">
+          <div class="wa-sender">🌱 FoodLink Alert</div>
+          🍛 <strong>Nasi Lemak Ayam Berempah</strong> is available <span id="wa-radius-txt">500m</span> from you!<br>
+          📍 Main Cafeteria · 3 portions left · Expires in 45 min<br>
+          👉 <span style="color:#128C7E;font-weight:600">fl.my/claim/FL-4821</span>
+          <div class="wa-time">10:32 AM ✓✓</div>
+        </div>
+      </div>
+    </div>
+    <!-- In-app -->
+    <span class="section-label">In-App Alerts</span>
+    <div class="menu-item" style="margin-bottom:10px;cursor:default">
+      <div class="menu-icon" style="background:#EFF6FF">🔔</div>
+      <div class="menu-info"><div class="menu-title">Push Notifications</div><div class="menu-sub">Alerts inside the app</div></div>
+      <div class="menu-toggle"><div class="toggle on" id="push-toggle" onclick="togglePush()"><div class="toggle-knob"></div></div></div>
+    </div>
+    <div class="menu-item" style="margin-bottom:10px;cursor:default">
+      <div class="menu-icon" style="background:#FEF2F2">⚡</div>
+      <div class="menu-info"><div class="menu-title">Urgent Food Only</div><div class="menu-sub">Only items expiring in &lt;30 min</div></div>
+      <div class="menu-toggle"><div class="toggle" id="urgent-toggle" onclick="toggleUrgentOnly()"><div class="toggle-knob"></div></div></div>
+    </div>
+    <div class="menu-item" style="margin-bottom:24px;cursor:default">
+      <div class="menu-icon" style="background:#F0FDF4">🟢</div>
+      <div class="menu-info"><div class="menu-title">Halal Only</div><div class="menu-sub">Only show halal-certified food</div></div>
+      <div class="menu-toggle"><div class="toggle" id="halal-filter-toggle" onclick="toggleHalalFilter()"><div class="toggle-knob"></div></div></div>
+    </div>
+    <button class="btn-primary" onclick="saveNotifSettings()">Save Settings</button>
   </div>
 </div>
 </div><!-- /.app-wrapper -->
@@ -1636,6 +1705,47 @@ function filterMapPins(type, el) {
     else if (type === 'Urgent') pin.style.display = item.urgent ? 'flex' : 'none';
     else if (type === 'Halal') pin.style.display = item.halal ? 'flex' : 'none';
   });
+}
+// ── Notif Settings ────────────────────────────────────────────────────────────
+let waOn = false;
+let pushOn = true;
+let urgentOnly = false;
+let halalFilter = false;
+const RADIUS_LABELS = {100:'100m',250:'250m',500:'500m',1000:'1km',2000:'2km'};
+
+function setRadius(r, el) {
+  window.notifRadius = r;
+  document.querySelectorAll('.radius-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('radius-desc').textContent = 'You\'ll be alerted when food appears within '+RADIUS_LABELS[r]+' of you';
+  document.getElementById('wa-radius-txt').textContent = RADIUS_LABELS[r];
+  updateMapRadius();
+}
+function toggleWhatsapp() {
+  waOn = !waOn;
+  const tgl = document.getElementById('wa-toggle');
+  tgl.className = 'toggle'+(waOn?' on':'');
+  const sec = document.getElementById('wa-section');
+  sec.style.maxHeight = waOn ? '400px' : '0';
+}
+function togglePush() {
+  pushOn = !pushOn;
+  const tgl = document.getElementById('push-toggle');
+  tgl.className = 'toggle'+(pushOn?' on':'');
+}
+function toggleUrgentOnly() {
+  urgentOnly = !urgentOnly;
+  const tgl = document.getElementById('urgent-toggle');
+  tgl.className = 'toggle'+(urgentOnly?' on':'');
+}
+function toggleHalalFilter() {
+  halalFilter = !halalFilter;
+  const tgl = document.getElementById('halal-filter-toggle');
+  tgl.className = 'toggle'+(halalFilter?' on':'');
+}
+function saveNotifSettings() {
+  toast('✅ Settings saved');
+  setTimeout(() => back('sc-profile'), 600);
 }
 // ── Bottom nav ────────────────────────────────────────────────────────────────
 function bnav(tab,screen){
