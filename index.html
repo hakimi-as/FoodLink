@@ -1871,10 +1871,10 @@ function populateProfile(){
   document.getElementById('prof-role-lbl').textContent=(u.role.charAt(0).toUpperCase()+u.role.slice(1))+' Account';
   // Pro badge on menu item
   const proMenuBadge = document.getElementById('pro-menu-badge');
-  if(proMenuBadge) proMenuBadge.textContent = currentUser.isPro ? 'ACTIVE ✓' : 'UPGRADE';
+  if(proMenuBadge) proMenuBadge.textContent = u && u.isPro ? 'ACTIVE ✓' : 'UPGRADE';
   // Append Pro label to role badge
   const roleEl = document.getElementById('prof-role-lbl');
-  if(currentUser.isPro && roleEl && !roleEl.textContent.includes('⚡')){
+  if(u && u.isPro && roleEl && !roleEl.textContent.includes('⚡')){
     roleEl.textContent = roleEl.textContent + ' · ⚡ Pro';
   }
   document.getElementById('prof-stat-donated').textContent=u.role==='donor'?donorFoods.length:'0';
@@ -1919,11 +1919,13 @@ function switchHistTab(tab){
 // ── Leaderboard ───────────────────────────────────────────────────────────────
 function renderLbProBadges(){
   const proNames=new Set(Object.values(USERS).filter(u=>u.isPro).map(u=>u.name));
-  document.querySelectorAll('.lb-name').forEach(el=>{
-    if(!el.querySelector('.lb-pro-badge')&&proNames.has(el.textContent.trim())){
+  document.querySelectorAll('.lb-name, .lb-pod-name').forEach(el=>{
+    if(el.querySelector('.lb-pro-badge')) return;
+    const name=el.textContent.trim();
+    if(proNames.has(name)){
       const badge=document.createElement('span');
       badge.className='lb-pro-badge';
-      badge.style.cssText='font-size:10px;background:linear-gradient(135deg,#7C3AED,#A855F7);color:#fff;padding:2px 7px;border-radius:20px;font-weight:800;vertical-align:middle;margin-left:4px';
+      badge.style.cssText='font-size:10px;background:linear-gradient(135deg,#7C3AED,#A855F7);color:#fff;padding:2px 7px;border-radius:20px;font-weight:800;vertical-align:middle;margin-left:5px';
       badge.textContent='⚡ PRO';
       el.appendChild(badge);
     }
