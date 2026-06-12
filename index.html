@@ -656,7 +656,26 @@ body{font-family:'DM Sans',sans-serif;color:var(--tx)}
       <div style="font-size:13px;color:var(--gd);line-height:1.5;font-weight:500">Please pick up within 30 minutes of claiming. Show your QR code to the donor.</div>
     </div>
     <button class="btn-outline" onclick="showQR()" style="margin-bottom:12px;width:100%">📱 Show QR Code</button>
-    <button class="btn-primary" onclick="populateFeedScreen();go('sc-feed')">Back to Feed</button>
+    <button class="btn-primary" onclick="showRateScreen()">Rate & Continue</button>
+  </div>
+</div>
+
+<!-- ===================== RATE ===================== -->
+<div class="screen" id="sc-rate" style="align-items:center;justify-content:center;padding:40px 24px">
+  <div style="text-align:center;width:100%">
+    <div style="font-size:52px;margin-bottom:16px">⭐</div>
+    <div style="font-family:'Sora',sans-serif;font-size:22px;font-weight:800;color:var(--tx);margin-bottom:8px">Rate Your Pickup</div>
+    <div id="rate-donor-name" style="font-size:14px;color:var(--mu);margin-bottom:28px"></div>
+    <div style="display:flex;justify-content:center;gap:12px;margin-bottom:20px">
+      <span class="rate-star" data-val="1" onclick="setRating(1)" style="font-size:44px;cursor:pointer;transition:transform .15s;color:#CBD5E1">★</span>
+      <span class="rate-star" data-val="2" onclick="setRating(2)" style="font-size:44px;cursor:pointer;transition:transform .15s;color:#CBD5E1">★</span>
+      <span class="rate-star" data-val="3" onclick="setRating(3)" style="font-size:44px;cursor:pointer;transition:transform .15s;color:#CBD5E1">★</span>
+      <span class="rate-star" data-val="4" onclick="setRating(4)" style="font-size:44px;cursor:pointer;transition:transform .15s;color:#CBD5E1">★</span>
+      <span class="rate-star" data-val="5" onclick="setRating(5)" style="font-size:44px;cursor:pointer;transition:transform .15s;color:#CBD5E1">★</span>
+    </div>
+    <div id="rate-label" style="font-size:15px;color:var(--mu);margin-bottom:28px;min-height:22px"></div>
+    <button id="rate-submit-btn" class="btn-primary" onclick="submitRating()" style="opacity:.4;pointer-events:none;margin-bottom:12px">Submit Rating</button>
+    <button class="btn-outline" onclick="populateFeedScreen();go('sc-feed')">Skip</button>
   </div>
 </div>
 
@@ -1558,6 +1577,8 @@ let selectedEmoji = '🍛';
 let notifOn = true;
 let darkModeOn = false;
 let priorityAlertsOn = false;
+let currentRating = 0;
+let pushOn = true;
 let activeChip = 'All';
 let activeFeedTab = 'pickup';
 let activeAdminTab = 'users';
@@ -1582,14 +1603,14 @@ const USERS = {
 
 // ── Mock foods ────────────────────────────────────────────────────────────────
 const FOODS = [
-  { id:1, title:'Nasi Lemak Ayam Berempah', donor:'Warung Mak Jah',  loc:'Main Cafeteria, Level 1',  emoji:'🍛', qty:5,  mins:60,  halal:true,  grad:'#FFF7ED,#FED7AA' },
-  { id:2, title:'Curry Puff Sardin',        donor:'Ahmad Warung',    loc:'Block B Cafeteria',         emoji:'🥟', qty:6,  mins:67,  halal:true,  grad:'#F0FDF4,#BBF7D0' },
-  { id:3, title:'Mee Goreng Mamak',         donor:'Warung Mak Jah',  loc:'Main Cafeteria',            emoji:'🍜', qty:4,  mins:118, halal:true,  grad:'#FFF7ED,#FDBA74' },
-  { id:4, title:'Roti Canai Special',       donor:'Ahmad Warung',    loc:'Block B Cafeteria',         emoji:'🫓', qty:8,  mins:180, halal:true,  grad:'#EFF6FF,#BFDBFE' },
-  { id:5, title:'Teh Tarik Istimewa',       donor:'Warung Mak Jah',  loc:'Main Cafeteria',            emoji:'🧋', qty:10, mins:30,  halal:true,  grad:'#FFFBEB,#FDE68A' },
-  { id:6, title:'Nasi Ayam Hainanese', donor:'IIUM Partner Cafeteria', loc:'Kulliyyah of Engineering', emoji:'🍗', qty:8, mins:90, halal:true, grad:'#FAF5FF,#EDE9FE', partner:true },
-  { id:7, title:'Laksa Penang Special', donor:'UM Partner Cafeteria', loc:'Faculty of Science', emoji:'🍜', qty:5, mins:120, halal:true, grad:'#FAF5FF,#EDE9FE', partner:true },
-  { id:8, title:'Bubur Lambuk Ramadan', donor:'UTM Partner Cafeteria', loc:'Student Union Building', emoji:'🥣', qty:12, mins:60, halal:true, grad:'#FAF5FF,#EDE9FE', partner:true },
+  { id:1, title:'Nasi Lemak Ayam Berempah', donor:'Warung Mak Jah',         loc:'Main Cafeteria, Level 1',  emoji:'🍛', qty:5,  mins:60,  halal:true,  grad:'#FFF7ED,#FED7AA', rating:4.8, reviews:34 },
+  { id:2, title:'Curry Puff Sardin',        donor:'Ahmad Warung',            loc:'Block B Cafeteria',         emoji:'🥟', qty:6,  mins:67,  halal:true,  grad:'#F0FDF4,#BBF7D0', rating:4.6, reviews:18 },
+  { id:3, title:'Mee Goreng Mamak',         donor:'Warung Mak Jah',          loc:'Main Cafeteria',            emoji:'🍜', qty:4,  mins:118, halal:true,  grad:'#FFF7ED,#FDBA74', rating:4.9, reviews:51 },
+  { id:4, title:'Roti Canai Special',       donor:'Ahmad Warung',            loc:'Block B Cafeteria',         emoji:'🫓', qty:8,  mins:180, halal:true,  grad:'#EFF6FF,#BFDBFE', rating:4.7, reviews:27 },
+  { id:5, title:'Teh Tarik Istimewa',       donor:'Warung Mak Jah',          loc:'Main Cafeteria',            emoji:'🧋', qty:10, mins:30,  halal:true,  grad:'#FFFBEB,#FDE68A', rating:4.5, reviews:12 },
+  { id:6, title:'Nasi Ayam Hainanese',  donor:'IIUM Partner Cafeteria', loc:'Kulliyyah of Engineering', emoji:'🍗', qty:8, mins:90,  halal:true, grad:'#FAF5FF,#EDE9FE', partner:true, rating:4.9, reviews:89 },
+  { id:7, title:'Laksa Penang Special', donor:'UM Partner Cafeteria',   loc:'Faculty of Science',       emoji:'🍜', qty:5, mins:120, halal:true, grad:'#FAF5FF,#EDE9FE', partner:true, rating:4.8, reviews:45 },
+  { id:8, title:'Bubur Lambuk Ramadan', donor:'UTM Partner Cafeteria',  loc:'Student Union Building',   emoji:'🥣', qty:12, mins:60, halal:true, grad:'#FAF5FF,#EDE9FE', partner:true, rating:4.7, reviews:63 },
 ];
 
 let foods = FOODS.map(f=>({...f}));
@@ -1724,7 +1745,9 @@ function foodCardHTML(f) {
       <div class="fc-title">${f.title}</div>
       <div class="fc-loc">📍 ${f.loc}</div>
       <div class="fc-foot">
-        <div class="fc-time">⏱ Posted just now</div>
+        <div style="display:flex;align-items:center;gap:6px">
+          ${f.rating ? `<span style="font-size:12px;font-weight:700;color:#F59E0B">★ ${f.rating}</span><span style="font-size:11px;color:var(--mu)">(${f.reviews})</span>` : `<div class="fc-time">⏱ Just now</div>`}
+        </div>
         <button class="fc-pickup" onclick="event.stopPropagation();openClaim(${f.id})">Pick Up →</button>
       </div>
     </div>
@@ -1884,6 +1907,39 @@ function adjDonorQty(i,d){
   donorFoods[i].qty=Math.max(0,donorFoods[i].qty+d);
   renderDonorListings();
   document.getElementById('don-stat-active').textContent=donorFoods.filter(f=>f.qty>0).length;
+}
+// ── Rating ────────────────────────────────────────────────────────────────────
+const RATE_LABELS = ['','😞 Poor','😕 Fair','😐 Okay','😊 Good','🤩 Excellent!'];
+function showRateScreen() {
+  currentRating = 0;
+  document.getElementById('rate-donor-name').textContent = claimFood
+    ? 'How was your pickup from ' + claimFood.donor + '?'
+    : 'How was your experience?';
+  document.querySelectorAll('.rate-star').forEach(s => {
+    s.style.color = '#CBD5E1';
+    s.style.transform = 'scale(1)';
+  });
+  document.getElementById('rate-label').textContent = '';
+  const btn = document.getElementById('rate-submit-btn');
+  btn.style.opacity = '.4';
+  btn.style.pointerEvents = 'none';
+  go('sc-rate');
+}
+function setRating(val) {
+  currentRating = val;
+  document.querySelectorAll('.rate-star').forEach(s => {
+    const v = parseInt(s.dataset.val);
+    s.style.color = v <= val ? '#F59E0B' : '#CBD5E1';
+    s.style.transform = v === val ? 'scale(1.25)' : 'scale(1)';
+  });
+  document.getElementById('rate-label').textContent = RATE_LABELS[val];
+  const btn = document.getElementById('rate-submit-btn');
+  btn.style.opacity = '1';
+  btn.style.pointerEvents = 'auto';
+}
+function submitRating() {
+  toast('⭐ Thanks for your rating!');
+  setTimeout(() => { populateFeedScreen(); go('sc-feed'); }, 600);
 }
 function goToVerify(){go('sc-verify');}
 
