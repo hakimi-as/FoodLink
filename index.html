@@ -1672,6 +1672,7 @@ function togglePwd(id,btn) {
   inp.type=inp.type==='password'?'text':'password';
 }
 function logout() {
+  activeChip = 'All';
   currentUser=null;
   back('sc-login');
   toast('Logged out successfully');
@@ -1717,7 +1718,6 @@ function foodCardHTML(f) {
   </div>`;
 }
 function filterFeed(chip) {
-  activeChip=chip;
   document.querySelectorAll('#feed-chips .chip').forEach(c=>{
     c.className='chip'+(c.dataset.chip===chip?' active':'');
   });
@@ -1733,8 +1733,10 @@ function filterFeed(chip) {
     const partnerFoods = FOODS.filter(f => f.partner);
     renderFoodCards(partnerFoods);
     document.getElementById('feed-count').textContent = partnerFoods.length + ' items';
+    activeChip = 'Partner';
     return;
   }
+  activeChip=chip;
   let list=foods.filter(f=>!f.partner);
   const search=document.getElementById('feed-search').value.toLowerCase();
   if(search)list=list.filter(f=>f.title.toLowerCase().includes(search)||f.donor.toLowerCase().includes(search)||f.loc.toLowerCase().includes(search));
