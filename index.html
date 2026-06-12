@@ -1190,7 +1190,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--tx)}
     <button class="tab-btn active" data-tab="users" onclick="switchAdminTab('users')">Users</button>
     <button class="tab-btn" data-tab="food" onclick="switchAdminTab('food')">Food</button>
     <button class="tab-btn" data-tab="claims" onclick="switchAdminTab('claims')">Claims</button>
-    <button class="tab-btn" data-tab="pro" onclick="switchAdminTab('pro')" style="color:var(--p)">📊 Pro</button>
+    <button class="tab-btn" data-tab="pro" onclick="switchAdminTab('pro')" style="color:#7C3AED;font-weight:700">📊 Pro <span style="font-size:9px;background:linear-gradient(135deg,#7C3AED,#A855F7);color:#fff;padding:1px 6px;border-radius:20px;vertical-align:middle;font-weight:800">PRO</span></button>
   </div>
   <div class="sa" style="padding:14px 22px 40px">
     <div id="admin-panel-users">
@@ -1925,6 +1925,17 @@ function switchAdminTab(tab){
     const p=document.getElementById('admin-panel-'+t);
     if(p)p.style.display=t===tab?'block':'none';
   });
+  // Pro gate — inject upgrade prompt for non-Pro users
+  if(tab === 'pro' && currentUser && !currentUser.isPro) {
+    const panel = document.getElementById('admin-panel-pro');
+    if(panel) panel.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-ico">⚡</div>
+        <div class="empty-title">FoodLink Pro Required</div>
+        <div class="empty-sub">Upgrade to Pro to access analytics, carbon credit marketplace, and partner cafeteria management.</div>
+        <button onclick="goProScreen()" style="margin-top:16px;height:48px;padding:0 28px;background:linear-gradient(135deg,#7C3AED,#A855F7);border:none;border-radius:14px;color:#fff;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer">Upgrade to Pro ⚡</button>
+      </div>`;
+  }
 }
 
 // ── History ───────────────────────────────────────────────────────────────────
