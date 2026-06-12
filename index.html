@@ -1386,6 +1386,18 @@ body{font-family:'DM Sans',sans-serif;color:var(--tx)}
       <div class="menu-info"><div class="menu-title">Halal Only</div><div class="menu-sub">Only show halal-certified food</div></div>
       <div class="menu-toggle"><div class="toggle" id="halal-filter-toggle" onclick="toggleHalalFilter()"><div class="toggle-knob"></div></div></div>
     </div>
+    <span class="section-label" style="margin-top:4px">Pro Features</span>
+    <div class="menu-item" id="priority-alert-row" style="margin-bottom:14px" onclick="togglePriorityAlerts()">
+      <div class="menu-icon" style="background:linear-gradient(135deg,#FFF1F2,#FFE4E6)">⚡</div>
+      <div class="menu-info">
+        <div class="menu-title" style="display:flex;align-items:center;gap:8px">
+          Priority Alerts
+          <span style="background:linear-gradient(135deg,#7C3AED,#A855F7);color:#fff;font-size:9px;font-weight:800;padding:2px 7px;border-radius:20px">PRO</span>
+        </div>
+        <div class="menu-sub">Get notified before everyone else</div>
+      </div>
+      <div class="menu-toggle"><div class="toggle" id="priority-toggle"><div class="toggle-knob"></div></div></div>
+    </div>
     <button class="btn-primary" onclick="saveNotifSettings()">Save Settings</button>
   </div>
 </div>
@@ -1545,6 +1557,7 @@ let halalChecked = false;
 let selectedEmoji = '🍛';
 let notifOn = true;
 let darkModeOn = false;
+let priorityAlertsOn = false;
 let activeChip = 'All';
 let activeFeedTab = 'pickup';
 let activeAdminTab = 'users';
@@ -1915,6 +1928,17 @@ function toggleDark(){
   const tgl=document.getElementById('dark-toggle');
   tgl.className='toggle'+(darkModeOn?' on':'');
   toast(darkModeOn?'Dark mode on (prototype only)':'Light mode on');
+}
+function togglePriorityAlerts() {
+  if(!currentUser || !currentUser.isPro) {
+    toast('Priority Alerts is a Pro feature');
+    goProScreen();
+    return;
+  }
+  priorityAlertsOn = !priorityAlertsOn;
+  const t = document.getElementById('priority-toggle');
+  t.className = 'toggle' + (priorityAlertsOn ? ' on' : '');
+  toast(priorityAlertsOn ? '⚡ Priority Alerts enabled' : 'Priority Alerts disabled');
 }
 
 // ── Admin ─────────────────────────────────────────────────────────────────────
