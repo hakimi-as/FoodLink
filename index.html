@@ -1578,7 +1578,6 @@ let notifOn = true;
 let darkModeOn = false;
 let priorityAlertsOn = false;
 let currentRating = 0;
-let pushOn = true;
 let activeChip = 'All';
 let activeFeedTab = 'pickup';
 let activeAdminTab = 'users';
@@ -1938,6 +1937,13 @@ function setRating(val) {
   btn.style.pointerEvents = 'auto';
 }
 function submitRating() {
+  if(currentRating > 0 && claimFood) {
+    const f = foods.find(x => x.id === claimFood.id);
+    if(f) {
+      f.reviews = (f.reviews || 0) + 1;
+      f.rating = parseFloat(((f.rating * (f.reviews - 1) + currentRating) / f.reviews).toFixed(1));
+    }
+  }
   toast('⭐ Thanks for your rating!');
   setTimeout(() => { populateFeedScreen(); go('sc-feed'); }, 600);
 }
@@ -2068,7 +2074,7 @@ function updateMapRadius() {
 function showClaimFromMap(idx) {
   if (currentUser && currentUser.role === 'donor') { toast('Donors cannot claim food'); return; }
   const item = MAP_FOODS[idx];
-  claimFood = {id: 900+idx, title: item.title, donor: item.donor, loc: item.loc, emoji: item.emoji, qty: item.qty};
+  claimFood = {id: 900+idx, title: item.title, donor: item.donor, loc: item.loc, emoji: item.emoji, qty: item.qty, rating: item.rating || null, reviews: item.reviews || 0};
   claimQty = 1;
   document.getElementById('cl-emoji').textContent = item.emoji;
   document.getElementById('cl-title').textContent = item.title;
