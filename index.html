@@ -34,7 +34,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--tx)}
 .sa::-webkit-scrollbar{display:none}
 
 /* Toast */
-.toast{position:fixed;bottom:110px;left:50%;transform:translateX(-50%) translateY(20px);background:#1E293B;color:#fff;padding:10px 20px;border-radius:24px;font-size:13px;font-family:'DM Sans',sans-serif;font-weight:600;z-index:9999;opacity:0;pointer-events:none;transition:all .3s;white-space:nowrap;max-width:300px;text-align:center}
+.toast{position:fixed;bottom:110px;left:50%;transform:translateX(-50%) translateY(20px);background:#1E293B;color:#fff;padding:10px 18px;border-radius:20px;font-size:12.5px;font-family:'DM Sans',sans-serif;font-weight:600;z-index:9999;opacity:0;pointer-events:none;transition:all .3s;white-space:normal;max-width:280px;text-align:center;line-height:1.4;width:max-content}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
 /* Claim overlay */
@@ -603,7 +603,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--tx)}
       <div class="impact-div"></div>
       <div class="impact-stat"><div class="impact-val" style="font-size:15px">43</div><div class="impact-lbl">🌱 CO₂ kg</div></div>
       <div class="impact-div"></div>
-      <div class="impact-stat" onclick="toast('1 CR = 1kg CO₂ offset. Sell credits to corporate partners via FoodLink Pro.')" style="cursor:pointer"><div class="impact-val" style="font-size:15px;color:#7C3AED">21</div><div class="impact-lbl">🌿 CARBON CR</div></div>
+      <div class="impact-stat" onclick="goProScreen()" style="cursor:pointer"><div class="impact-val" style="font-size:15px;color:#7C3AED">21</div><div class="impact-lbl">🌿 CARBON CR</div></div>
     </div>
     <div class="search-bar" style="margin-top:12px">
       <span style="font-size:16px;color:var(--hi)">🔍</span>
@@ -887,7 +887,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--tx)}
           <div class="prof-stat-lbl">Saved</div>
         </div>
         <div class="prof-div"></div>
-        <div class="prof-stat" onclick="toast('Your 21 credits ≈ RM 63. Redeem via FoodLink Pro.')" style="cursor:pointer">
+        <div class="prof-stat" onclick="goProScreen()" style="cursor:pointer">
           <div class="prof-stat-ico" style="font-size:15px">🌱</div>
           <div class="prof-stat-val" id="prof-stat-credits" style="color:#7C3AED;font-size:18px">21</div>
           <div class="prof-stat-lbl">Credits</div>
@@ -929,6 +929,12 @@ body{font-family:'DM Sans',sans-serif;color:var(--tx)}
         <div class="menu-icon" style="background:var(--pl)">ℹ️</div>
         <div class="menu-info"><div class="menu-title">About FoodLink</div><div class="menu-sub">Version 1.0.0 · Terms · Privacy</div></div>
         <div class="menu-chevron">›</div>
+      </div>
+      <!-- FoodLink Pro -->
+      <div class="menu-item" onclick="goProScreen()" style="background:linear-gradient(135deg,#FAF5FF,#EDE9FE);border:1.5px solid #C4B5FD">
+        <div class="menu-icon" style="background:linear-gradient(135deg,#7C3AED,#A855F7)">⚡</div>
+        <div class="menu-info"><div class="menu-title" style="color:#5B21B6">FoodLink Pro</div><div class="menu-sub">Analytics · Carbon credits · Partner access</div></div>
+        <div id="pro-menu-badge" style="background:linear-gradient(135deg,#7C3AED,#A855F7);color:#fff;font-size:10px;font-weight:800;padding:3px 10px;border-radius:20px;flex-shrink:0">UPGRADE</div>
       </div>
       <!-- Admin only -->
       <div id="admin-menu-item" style="display:none;background:linear-gradient(135deg,var(--pl),#FFE8DC);border:1.5px solid rgba(240,90,40,.3)" class="menu-item" onclick="go('sc-admin')">
@@ -1382,6 +1388,149 @@ body{font-family:'DM Sans',sans-serif;color:var(--tx)}
     <button class="btn-primary" onclick="saveNotifSettings()">Save Settings</button>
   </div>
 </div>
+
+<!-- ===================== FOODLINK PRO ===================== -->
+<div class="screen" id="sc-pro">
+  <div class="back-row">
+    <div class="back-btn" onclick="back('sc-profile')">←</div>
+    <div style="font-family:'Sora',sans-serif;font-size:17px;font-weight:700;color:var(--tx)">FoodLink Pro</div>
+  </div>
+  <div class="sa" style="padding:0 0 32px">
+    <!-- Hero -->
+    <div style="background:linear-gradient(160deg,#0F172A,#1E293B,#2D1B69);padding:28px 22px 32px;text-align:center;position:relative;overflow:hidden">
+      <div style="position:absolute;top:-30px;right:-30px;width:140px;height:140px;background:rgba(124,58,237,.2);border-radius:50%"></div>
+      <div style="position:absolute;bottom:-20px;left:-20px;width:100px;height:100px;background:rgba(240,90,40,.15);border-radius:50%"></div>
+      <div style="width:72px;height:72px;background:linear-gradient(135deg,#7C3AED,#A855F7);border-radius:22px;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 16px;box-shadow:0 10px 30px rgba(124,58,237,.4)">⚡</div>
+      <div style="font-family:'Sora',sans-serif;font-size:26px;font-weight:800;color:#fff;margin-bottom:8px">FoodLink <span style="color:#A78BFA">Pro</span></div>
+      <div id="pro-active-badge" style="display:none;background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.4);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;color:#4ADE80;margin-bottom:8px">✓ Active on your account</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.7);line-height:1.6">Unlock analytics, carbon credit trading,<br>and ASEAN partner cafeteria access.</div>
+      <div style="margin-top:20px;display:inline-flex;align-items:baseline;gap:4px">
+        <span style="font-family:'Sora',sans-serif;font-size:36px;font-weight:800;color:#fff">RM 9.90</span>
+        <span style="font-size:13px;color:rgba(255,255,255,.55)">/month</span>
+      </div>
+      <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:4px">Free for verified institutions</div>
+    </div>
+    <!-- Carbon credits banner -->
+    <div style="margin:20px 22px 0;background:linear-gradient(135deg,#FAF5FF,#EDE9FE);border:1.5px solid #C4B5FD;border-radius:18px;padding:16px;display:flex;align-items:center;gap:14px">
+      <div style="width:48px;height:48px;background:linear-gradient(135deg,#7C3AED,#A855F7);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🌿</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:#5B21B6">Your Carbon Credits</div>
+        <div style="font-size:13px;color:#7C3AED;margin-top:2px"><span style="font-family:'Sora';font-size:22px;font-weight:800">21</span> CR ≈ <span style="font-weight:700">RM 63</span></div>
+        <div style="font-size:11px;color:#A78BFA;margin-top:2px">Upgrade Pro to sell to corporate partners</div>
+      </div>
+    </div>
+    <!-- Features -->
+    <div style="padding:20px 22px 0">
+      <div style="font-family:'Sora',sans-serif;font-size:15px;font-weight:700;color:var(--tx);margin-bottom:14px">What you get</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="background:var(--card);border-radius:16px;padding:14px;display:flex;align-items:center;gap:14px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+          <div style="width:42px;height:42px;background:linear-gradient(135deg,#EDE9FE,#DDD6FE);border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">📊</div>
+          <div><div style="font-size:14px;font-weight:600;color:var(--tx)">Advanced Analytics</div><div style="font-size:12px;color:var(--mu);margin-top:2px">Weekly trends, waste reduction charts, impact reports</div></div>
+        </div>
+        <div style="background:var(--card);border-radius:16px;padding:14px;display:flex;align-items:center;gap:14px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+          <div style="width:42px;height:42px;background:linear-gradient(135deg,#F0FDF4,#DCFCE7);border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🌿</div>
+          <div><div style="font-size:14px;font-weight:600;color:var(--tx)">Carbon Credit Trading</div><div style="font-size:12px;color:var(--mu);margin-top:2px">Sell your credits to verified corporate partners</div></div>
+        </div>
+        <div style="background:var(--card);border-radius:16px;padding:14px;display:flex;align-items:center;gap:14px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+          <div style="width:42px;height:42px;background:linear-gradient(135deg,#FFF7ED,#FED7AA);border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🏪</div>
+          <div><div style="font-size:14px;font-weight:600;color:var(--tx)">Partner Cafeterias</div><div style="font-size:12px;color:var(--mu);margin-top:2px">Access exclusive listings from ASEAN partner donors</div></div>
+        </div>
+        <div style="background:var(--card);border-radius:16px;padding:14px;display:flex;align-items:center;gap:14px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+          <div style="width:42px;height:42px;background:linear-gradient(135deg,#EFF6FF,#DBEAFE);border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🏅</div>
+          <div><div style="font-size:14px;font-weight:600;color:var(--tx)">Pro Badge</div><div style="font-size:12px;color:var(--mu);margin-top:2px">Stand out on the leaderboard with a verified Pro badge</div></div>
+        </div>
+        <div style="background:var(--card);border-radius:16px;padding:14px;display:flex;align-items:center;gap:14px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+          <div style="width:42px;height:42px;background:linear-gradient(135deg,#FFF1F2,#FFE4E6);border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">⚡</div>
+          <div><div style="font-size:14px;font-weight:600;color:var(--tx)">Priority Alerts</div><div style="font-size:12px;color:var(--mu);margin-top:2px">Get notified first when new food is posted nearby</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Sticky CTA -->
+  <div style="padding:12px 22px 28px;background:var(--bg);box-shadow:0 -4px 16px rgba(0,0,0,.06)">
+    <button id="pro-cta-btn" style="width:100%;height:54px;background:linear-gradient(135deg,#7C3AED,#A855F7);border:none;border-radius:16px;color:#fff;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 6px 22px rgba(124,58,237,.4)">Upgrade to Pro ⚡</button>
+    <div id="pro-cta-sub" style="text-align:center;font-size:11.5px;color:var(--mu);margin-top:10px">Cancel anytime · Secure payment via FPX</div>
+  </div>
+</div>
+
+
+<!-- ===================== EXCHANGE ===================== -->
+<div class="screen" id="sc-exchange">
+  <div class="back-row">
+    <div class="back-btn" onclick="back('sc-pro')">←</div>
+    <div style="font-family:'Sora',sans-serif;font-size:17px;font-weight:700;color:var(--tx)">Exchange Credits</div>
+    <div style="background:linear-gradient(135deg,#7C3AED,#A855F7);color:#fff;font-size:10px;font-weight:800;padding:3px 10px;border-radius:20px;margin-left:auto">PRO</div>
+  </div>
+  <div class="sa" style="padding:0 22px 40px">
+    <!-- Balance card -->
+    <div style="background:linear-gradient(135deg,#2D1B69,#1E293B);border-radius:22px;padding:24px;text-align:center;margin-bottom:20px">
+      <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.45);letter-spacing:.5px;margin-bottom:8px">YOUR BALANCE</div>
+      <div style="font-family:'Sora',sans-serif;font-size:52px;font-weight:800;color:#fff;line-height:1">21</div>
+      <div style="font-size:13px;color:#A78BFA;margin-top:4px">Carbon Credits (CR)</div>
+      <div style="height:1px;background:rgba(255,255,255,.1);margin:16px 0"></div>
+      <div style="display:flex;justify-content:center;gap:32px">
+        <div style="text-align:center">
+          <div style="font-family:'Sora',sans-serif;font-size:20px;font-weight:800;color:#4ADE80">RM 63.00</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:2px">ESTIMATED VALUE</div>
+        </div>
+        <div style="width:1px;background:rgba(255,255,255,.1)"></div>
+        <div style="text-align:center">
+          <div style="font-family:'Sora',sans-serif;font-size:20px;font-weight:800;color:#FCD34D">RM 3.00</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:2px">RATE / CR</div>
+        </div>
+      </div>
+    </div>
+    <!-- Sell amount -->
+    <div style="background:var(--card);border-radius:18px;padding:18px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+      <div style="font-size:11px;font-weight:700;color:var(--mu);letter-spacing:.5px;margin-bottom:14px">SELL CREDITS</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div style="font-size:14px;color:var(--mu)">Amount to sell</div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <button class="stepper-btn" onclick="adjustExchange(-1)">−</button>
+          <span id="exchange-qty" class="stepper-val">10</span>
+          <button class="stepper-btn" onclick="adjustExchange(1)">+</button>
+        </div>
+      </div>
+      <div style="background:var(--el);border-radius:12px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center">
+        <div style="font-size:13px;color:var(--mu)">You will receive</div>
+        <div style="font-family:'Sora',sans-serif;font-size:18px;font-weight:800;color:#16A34A" id="exchange-val">RM 30.00</div>
+      </div>
+    </div>
+    <!-- Payout -->
+    <div style="background:var(--card);border-radius:18px;padding:18px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+      <div style="font-size:11px;font-weight:700;color:var(--mu);letter-spacing:.5px;margin-bottom:14px">PAYOUT METHOD</div>
+      <div class="field" style="margin-bottom:10px">
+        <label>Bank Name</label>
+        <div class="field-wrap"><span class="icon">🏦</span><input type="text" placeholder="e.g. Maybank, CIMB, RHB"></div>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>Account Number</label>
+        <div class="field-wrap"><span class="icon">💳</span><input type="text" placeholder="e.g. 1234567890"></div>
+      </div>
+    </div>
+    <!-- Corporate buyers -->
+    <div style="font-family:'Sora',sans-serif;font-size:15px;font-weight:700;color:var(--tx);margin-bottom:12px">Corporate Buyers</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:24px">
+      <div style="background:var(--card);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+        <div style="width:38px;height:38px;background:#EFF6FF;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🏢</div>
+        <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--tx)">Petronas Sustainability</div><div style="font-size:11px;color:var(--mu)">Buying up to 500 CR/month</div></div>
+        <div style="font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:#16A34A;flex-shrink:0">RM 3.20/CR</div>
+      </div>
+      <div style="background:var(--card);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+        <div style="width:38px;height:38px;background:#F0FDF4;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">⚡</div>
+        <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--tx)">TNB Green Initiative</div><div style="font-size:11px;color:var(--mu)">Buying up to 300 CR/month</div></div>
+        <div style="font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:#16A34A;flex-shrink:0">RM 3.00/CR</div>
+      </div>
+      <div style="background:var(--card);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+        <div style="width:38px;height:38px;background:#FFF7ED;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🏗️</div>
+        <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--tx)">Sime Darby ESG</div><div style="font-size:11px;color:var(--mu)">Buying up to 1,000 CR/month</div></div>
+        <div style="font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:#16A34A;flex-shrink:0">RM 2.80/CR</div>
+      </div>
+    </div>
+    <button onclick="toast('✅ Sell order submitted! Payment in 3–5 business days.')" style="width:100%;height:54px;background:linear-gradient(135deg,#16A34A,#22C55E);border:none;border-radius:16px;color:#fff;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 6px 22px rgba(34,197,94,.4)">Sell Credits →</button>
+  </div>
+</div>
+
 </div><!-- /.app-wrapper -->
 
 <script>
@@ -1414,7 +1563,7 @@ let donorFoods = [];
 const USERS = {
   'donor@foodlink.my':  { name:'Ahmad Warung',       role:'donor',    pass:'demo123', initials:'AW' },
   'hakimi@iium.edu.my': { name:'Mohamad Nur Hakimi', role:'receiver', pass:'demo123', initials:'MH' },
-  'admin@foodlink.my':  { name:'Admin FoodLink',     role:'admin',    pass:'admin123', initials:'AF' }
+  'admin@foodlink.my':  { name:'Admin FoodLink',     role:'admin',    pass:'admin123', initials:'AF', isPro:true, isAdmin:true }
 };
 
 // ── Mock foods ────────────────────────────────────────────────────────────────
@@ -1441,6 +1590,7 @@ function go(id) {
   document.querySelectorAll('.screen').forEach(s=>{s.classList.remove('active','fi','fb');s.style.display='none'});
   const s = document.getElementById(id);
   s.style.display='flex'; s.classList.add('active','fi');
+  if(id==='sc-leaderboard') renderLbProBadges();
 }
 function back(id) {
   document.querySelectorAll('.screen').forEach(s=>{s.classList.remove('active','fi','fb');s.style.display='none'});
@@ -1719,6 +1869,14 @@ function populateProfile(){
   document.getElementById('prof-name').textContent=u.name;
   document.getElementById('prof-email').textContent=u.email;
   document.getElementById('prof-role-lbl').textContent=(u.role.charAt(0).toUpperCase()+u.role.slice(1))+' Account';
+  // Pro badge on menu item
+  const proMenuBadge = document.getElementById('pro-menu-badge');
+  if(proMenuBadge) proMenuBadge.textContent = currentUser.isPro ? 'ACTIVE ✓' : 'UPGRADE';
+  // Append Pro label to role badge
+  const roleEl = document.getElementById('prof-role-lbl');
+  if(currentUser.isPro && roleEl && !roleEl.textContent.includes('⚡')){
+    roleEl.textContent = roleEl.textContent + ' · ⚡ Pro';
+  }
   document.getElementById('prof-stat-donated').textContent=u.role==='donor'?donorFoods.length:'0';
   document.getElementById('prof-stat-claimed').textContent=u.role==='receiver'?'3':'0';
   document.getElementById('prof-stat-saved').textContent=(u.role==='donor'?donorFoods.length*2:6)+'kg';
@@ -1759,6 +1917,18 @@ function switchHistTab(tab){
 }
 
 // ── Leaderboard ───────────────────────────────────────────────────────────────
+function renderLbProBadges(){
+  const proNames=new Set(Object.values(USERS).filter(u=>u.isPro).map(u=>u.name));
+  document.querySelectorAll('.lb-name').forEach(el=>{
+    if(!el.querySelector('.lb-pro-badge')&&proNames.has(el.textContent.trim())){
+      const badge=document.createElement('span');
+      badge.className='lb-pro-badge';
+      badge.style.cssText='font-size:10px;background:linear-gradient(135deg,#7C3AED,#A855F7);color:#fff;padding:2px 7px;border-radius:20px;font-weight:800;vertical-align:middle;margin-left:4px';
+      badge.textContent='⚡ PRO';
+      el.appendChild(badge);
+    }
+  });
+}
 function switchLbTab(tab){
   activeLbTab=tab;
   document.querySelectorAll('#lb-tabs .tab-btn').forEach(b=>b.className='tab-btn'+(b.dataset.tab===tab?' active':''));
@@ -1766,6 +1936,7 @@ function switchLbTab(tab){
     const p=document.getElementById('lb-panel-'+t);
     if(p)p.style.display=t===tab?'block':'none';
   });
+  renderLbProBadges();
 }
 
 // ── Map ───────────────────────────────────────────────────────────────────────
@@ -1847,10 +2018,46 @@ function saveNotifSettings() {
 function bnav(tab,screen){
   document.querySelectorAll('.bnav-item').forEach(b=>b.className='bnav-item'+(b.dataset.tab===tab?' active':''));
   if(screen==='sc-feed'){populateFeedScreen();go('sc-feed');}
-  else if(screen==='sc-donate'){if(currentUser&&currentUser.role==='donor'){populateDonateScreen();go('sc-donate');}else{go('sc-post');renderEmojiGrid();}}
+  else if(screen==='sc-donate'){
+    if(!currentUser){toast('Please log in first');return;}
+    if(currentUser.role==='receiver'){toast('Only donors can post food');return;}
+    populateDonateScreen();go('sc-donate');
+  }
   else if(screen==='sc-profile'){populateProfile();go('sc-profile');}
 }
-function goPost(){renderEmojiGrid();go('sc-post');}
+function goPost(){
+  if(!currentUser){toast('Please log in first');return;}
+  if(currentUser.role==='receiver'){toast('Only donors can post food');return;}
+  populateDonateScreen();go('sc-donate');
+}
+function goProScreen(){
+  const isPro = currentUser && currentUser.isPro;
+  const btn = document.getElementById('pro-cta-btn');
+  const sub = document.getElementById('pro-cta-sub');
+  const badge = document.getElementById('pro-active-badge');
+  if(isPro){
+    btn.textContent = 'Exchange Carbon Credits 🌿';
+    btn.onclick = ()=>go('sc-exchange');
+    btn.style.background = 'linear-gradient(135deg,#16A34A,#22C55E)';
+    btn.style.boxShadow = '0 6px 22px rgba(34,197,94,.4)';
+    sub.textContent = 'Pro is active on your account';
+    badge.style.display = 'inline-block';
+  } else {
+    btn.textContent = 'Upgrade to Pro ⚡';
+    btn.onclick = ()=>toast('Redirecting to payment gateway...');
+    btn.style.background = 'linear-gradient(135deg,#7C3AED,#A855F7)';
+    btn.style.boxShadow = '0 6px 22px rgba(124,58,237,.4)';
+    sub.textContent = 'Cancel anytime · Secure payment via FPX';
+    badge.style.display = 'none';
+  }
+  go('sc-pro');
+}
+let exchangeQty = 10;
+function adjustExchange(d){
+  exchangeQty = Math.max(1, Math.min(21, exchangeQty + d));
+  document.getElementById('exchange-qty').textContent = exchangeQty;
+  document.getElementById('exchange-val').textContent = 'RM '+(exchangeQty*3).toFixed(2);
+}
 
 // ── Halal toggle (post) ───────────────────────────────────────────────────────
 let postHalal=true;
