@@ -615,6 +615,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--tx)}
     <div class="chip" data-chip="Halal" onclick="filterFeed('Halal')">🟢 Halal</div>
     <div class="chip" data-chip="Expiring" onclick="filterFeed('Expiring')">⚡ Expiring</div>
     <div class="chip" data-chip="Nearby" onclick="filterFeed('Nearby')">📍 Nearby</div>
+    <div class="chip" data-chip="Partner" onclick="filterFeed('Partner')">🌟 Partner</div>
   </div>
   <div class="sec-hdr">
     <div class="sec-title">Available Now</div>
@@ -1573,6 +1574,9 @@ const FOODS = [
   { id:3, title:'Mee Goreng Mamak',         donor:'Warung Mak Jah',  loc:'Main Cafeteria',            emoji:'🍜', qty:4,  mins:118, halal:true,  grad:'#FFF7ED,#FDBA74' },
   { id:4, title:'Roti Canai Special',       donor:'Ahmad Warung',    loc:'Block B Cafeteria',         emoji:'🫓', qty:8,  mins:180, halal:true,  grad:'#EFF6FF,#BFDBFE' },
   { id:5, title:'Teh Tarik Istimewa',       donor:'Warung Mak Jah',  loc:'Main Cafeteria',            emoji:'🧋', qty:10, mins:30,  halal:true,  grad:'#FFFBEB,#FDE68A' },
+  { id:6, title:'Nasi Ayam Hainanese', donor:'IIUM Partner Cafeteria', loc:'Kulliyyah of Engineering', emoji:'🍗', qty:8, mins:90, halal:true, grad:'#FAF5FF,#EDE9FE', partner:true },
+  { id:7, title:'Laksa Penang Special', donor:'UM Partner Cafeteria', loc:'Faculty of Science', emoji:'🍜', qty:5, mins:120, halal:true, grad:'#FAF5FF,#EDE9FE', partner:true },
+  { id:8, title:'Bubur Lambuk Ramadan', donor:'UTM Partner Cafeteria', loc:'Student Union Building', emoji:'🥣', qty:12, mins:60, halal:true, grad:'#FAF5FF,#EDE9FE', partner:true },
 ];
 
 let foods = FOODS.map(f=>({...f}));
@@ -1681,7 +1685,7 @@ function populateFeedScreen() {
   const greeting=hour<12?'Good morning 👋':hour<17?'Good afternoon 👋':'Good evening 👋';
   document.getElementById('feed-greeting').textContent=greeting;
   document.getElementById('feed-avatar').textContent=u.initials||u.name[0].toUpperCase();
-  renderFoodCards(foods);
+  renderFoodCards(foods.filter(f=>!f.partner));
 }
 function renderFoodCards(list) {
   const el=document.getElementById('food-list');
@@ -1699,6 +1703,7 @@ function foodCardHTML(f) {
         ${urgent?'🔥':'⏰'} ${timeLabel}
       </div>
       ${f.halal?'<div class="fc-badge halal">✓ HALAL</div>':''}
+      ${f.partner?'<div class="fc-badge" style="bottom:10px;right:12px;background:linear-gradient(135deg,#7C3AED,#A855F7);font-size:9px;letter-spacing:.3px">⚡ PARTNER</div>':''}
     </div>
     <div class="fc-body">
       <div class="fc-donor">${f.donor}</div>
@@ -1716,7 +1721,21 @@ function filterFeed(chip) {
   document.querySelectorAll('#feed-chips .chip').forEach(c=>{
     c.className='chip'+(c.dataset.chip===chip?' active':'');
   });
-  let list=foods;
+  if(chip==='Partner') {
+    if(!currentUser || !currentUser.isPro) {
+      goProScreen();
+      activeChip = 'All';
+      document.querySelectorAll('.chip').forEach(c => {
+        c.className = 'chip' + (c.dataset.chip === 'All' ? ' active' : '');
+      });
+      return;
+    }
+    const partnerFoods = FOODS.filter(f => f.partner);
+    renderFoodCards(partnerFoods);
+    document.getElementById('feed-count').textContent = partnerFoods.length + ' items';
+    return;
+  }
+  let list=foods.filter(f=>!f.partner);
   const search=document.getElementById('feed-search').value.toLowerCase();
   if(search)list=list.filter(f=>f.title.toLowerCase().includes(search)||f.donor.toLowerCase().includes(search)||f.loc.toLowerCase().includes(search));
   if(chip==='Halal')list=list.filter(f=>f.halal);
@@ -1726,7 +1745,7 @@ function filterFeed(chip) {
   renderFoodCards(list);
 }
 function searchFeed(val) {
-  let list=foods;
+  let list=foods.filter(f=>!f.partner);
   if(val)list=list.filter(f=>f.title.toLowerCase().includes(val.toLowerCase())||f.donor.toLowerCase().includes(val.toLowerCase())||f.loc.toLowerCase().includes(val.toLowerCase()));
   if(activeChip==='Halal')list=list.filter(f=>f.halal);
   if(activeChip==='Expiring')list=list.filter(f=>f.mins<=90);
