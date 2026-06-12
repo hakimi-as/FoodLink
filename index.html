@@ -2208,6 +2208,8 @@ function goProScreen(){
     btn.style.boxShadow = '0 6px 22px rgba(34,197,94,.4)';
     sub.textContent = 'Pro is active on your account';
     badge.style.display = 'inline-block';
+    const firstCard = document.getElementById('plan-basic');
+    if(firstCard) firstCard.parentElement.style.display = 'none';
   } else {
     btn.textContent = 'Upgrade to Pro ⚡';
     btn.onclick = ()=>toast('Redirecting to payment gateway...');
@@ -2215,6 +2217,9 @@ function goProScreen(){
     btn.style.boxShadow = '0 6px 22px rgba(124,58,237,.4)';
     sub.textContent = 'Cancel anytime · Secure payment via FPX';
     badge.style.display = 'none';
+    const firstCard = document.getElementById('plan-basic');
+    if(firstCard) firstCard.parentElement.style.display = 'flex';
+    selectPlan('basic');
   }
   go('sc-pro');
 }
